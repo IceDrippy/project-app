@@ -1,0 +1,100 @@
+/* Global Design Tokens */
+:root {
+  /* Primary palette */
+  --ag-ink: #111318;
+  --ag-ink-soft: #4b5563;
+  --ag-ink-muted: #9ca3af;
+  --ag-border: #e5e7eb;
+  --ag-bg-muted: #f5f7fb;
+  --ag-navy: #0c1220;
+  --ag-accent: #2563eb;
+  --ag-accent-hover: #1d4ed8;
+  
+  /* Legacy tokens (for wizard pages) */
+  --primary-blue: #0076bd;
+  --bg-light: #f8fafc;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e5e7eb;
+  --success-green: #22c55e;
+  --card-bg: #ffffff;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.08);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  background-color: #f8fafc;
+  color: var(--ag-ink);
+  line-height: 1.5;
+}
+
+#root,
+.App {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Semantic text elements replace MUI Typography, so they need the same reset. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.ag-page {
+  width: 100%;
+  max-width: none;
+  background: #ffffff;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--ag-accent);
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+.signup-container {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  background-color: #f0f4f8;
+  min-width: 320px;
+  max-width: 100%;
+}

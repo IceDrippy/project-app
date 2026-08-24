@@ -1,0 +1,326 @@
+/* Sign Up Page */
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background pattern */
+.signup-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(234, 88, 12, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(2, 132, 199, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Left branding panel */
+.signup-brand-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px;
+  position: relative;
+  z-index: 1;
+}
+
+.signup-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 48px;
+}
+
+.signup-brand-logo span {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+
+.signup-brand-tagline {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  color: #ffffff;
+  margin-bottom: 24px;
+  max-width: 480px;
+}
+
+.signup-brand-tagline span {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.signup-brand-description {
+  font-size: 18px;
+  line-height: 1.7;
+  color: #94a3b8;
+  max-width: 420px;
+  margin-bottom: 48px;
+}
+
+.signup-brand-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.signup-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.signup-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(234, 88, 12, 0.15);
+  border: 2px solid #ea580c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea580c;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.signup-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.signup-step-title {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.signup-step-desc {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Right form panel */
+.signup-form-panel {
+  width: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.signup-form-card {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.signup-form-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.signup-form-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.signup-form-subtitle {
+  font-size: 15px;
+  color: #64748b;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.signup-form .MuiTextField-root {
+  width: 100%;
+}
+
+.signup-form .MuiOutlinedInput-root {
+  border-radius: 10px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.signup-form .MuiOutlinedInput-root:hover {
+  background: #f1f5f9;
+}
+
+.signup-form .MuiOutlinedInput-root.Mui-focused {
+  background: #ffffff;
+}
+
+.signup-form .MuiOutlinedInput-notchedOutline {
+  border-color: #e2e8f0;
+}
+
+.signup-form .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #cbd5e1;
+}
+
+.signup-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #ea580c;
+  border-width: 2px;
+}
+
+.signup-form .MuiInputLabel-root.Mui-focused {
+  color: #ea580c;
+}
+
+/* Gender radio group */
+.signup-form .MuiFormControl-root {
+  margin-top: 4px;
+}
+
+.signup-form .MuiFormLabel-root {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.signup-form .MuiFormLabel-root.Mui-focused {
+  color: #ea580c;
+}
+
+.signup-form .MuiRadio-root {
+  color: #cbd5e1;
+}
+
+.signup-form .MuiRadio-root.Mui-checked {
+  color: #ea580c;
+}
+
+.signup-form .MuiFormControlLabel-label {
+  font-size: 14px;
+  color: #475569;
+}
+
+.signup-form .MuiFormGroup-root {
+  flex-direction: row;
+  gap: 24px;
+}
+
+.signup-submit-btn {
+  margin-top: 8px;
+  padding: 14px 24px !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  text-transform: none !important;
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%) !important;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+
+.signup-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.45) !important;
+}
+
+.signup-submit-btn:disabled {
+  background: #cbd5e1 !important;
+  box-shadow: none !important;
+  transform: none;
+}
+
+.signup-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.signup-divider::before,
+.signup-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.signup-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.signup-footer a {
+  color: #ea580c;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.signup-footer a:hover {
+  color: #c2410c;
+  text-decoration: underline;
+}
+
+/* Alert styling */
+.signup-form .MuiAlert-root {
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .signup-brand-panel {
+    display: none;
+  }
+  
+  .signup-form-panel {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  
+  .signup-page {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .signup-form-panel {
+    padding: 24px;
+  }
+  
+  .signup-form-card {
+    padding: 32px 24px;
+  }
+  
+  .signup-brand-tagline {
+    font-size: 36px;
+  }
+}

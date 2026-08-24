@@ -1,0 +1,239 @@
+/* Plan Comparison Page */
+.ag-page-title {
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+}
+
+.ag-page-subtitle {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ag-ink-soft);
+  max-width: 600px;
+}
+
+/* Plan Cards */
+.ag-plan-card.MuiPaper-root {
+  border-radius: 12px;
+  border: 2px solid var(--ag-border);
+  background: #ffffff;
+  transition: all var(--transition-normal);
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.ag-plan-card.MuiPaper-root:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  border-color: var(--ag-ink-soft);
+}
+
+.ag-plan-card--active.MuiPaper-root {
+  border-color: #ff6b35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+}
+
+.ag-plan-card--active.MuiPaper-root:hover {
+  box-shadow: 0 12px 28px rgba(255, 107, 53, 0.2);
+}
+
+.ag-plan-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: #ff6b35;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  animation: badge-glow 2s ease-in-out infinite;
+}
+
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+  50% { box-shadow: 0 0 8px 2px rgba(255, 107, 53, 0.3); }
+}
+
+.ag-plan-badge-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.8px;
+}
+
+.ag-plan-name {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ag-ink);
+  margin: 0;
+}
+
+.ag-plan-pricing {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ag-plan-pricing-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ag-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ag-plan-price {
+  font-weight: 900;
+  font-size: 42px;
+  color: var(--ag-ink);
+  line-height: 1;
+}
+
+.ag-plan-pricing-period {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ag-ink-soft);
+}
+
+.ag-plan-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ag-ink-soft);
+  margin-bottom: 20px;
+  margin-top: 12px;
+}
+
+.ag-plan-features {
+  margin-bottom: 24px;
+  flex: 1;
+}
+
+.ag-plan-feature {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.ag-plan-feature-icon {
+  width: 18px;
+  height: 18px;
+  color: #22863a;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ag-plan-feature-text {
+  font-size: 14px;
+  color: var(--ag-ink);
+  line-height: 1.5;
+}
+
+.ag-plan-btn.MuiButton-root {
+  text-transform: none;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100%;
+  transition: all var(--transition-fast);
+}
+
+.ag-plan-btn--active.MuiButton-contained {
+  background-color: #ff6b35;
+  color: #ffffff;
+}
+
+.ag-plan-btn--active.MuiButton-contained:hover {
+  background-color: #e55a24;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.ag-plan-btn.MuiButton-outlined {
+  border-color: var(--ag-border);
+  color: var(--ag-ink);
+}
+
+.ag-plan-btn.MuiButton-outlined:hover {
+  border-color: var(--ag-ink);
+  background: var(--ag-bg-muted);
+  transform: translateY(-1px);
+}
+
+/* Footer */
+.ag-footer {
+  padding: 64px 0 32px;
+}
+
+.ag-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ag-footer-mark {
+  color: var(--ag-navy);
+  transform: rotate(90deg);
+}
+
+.ag-footer-name {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.ag-footer-tagline {
+  color: var(--ag-ink-soft);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+.ag-footer-heading {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #9ca3af;
+  margin-bottom: 14px;
+}
+
+.ag-footer-link {
+  font-size: 14px;
+  color: var(--ag-ink-soft);
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.ag-footer-link:hover {
+  color: var(--ag-ink);
+}
+
+.ag-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--ag-border);
+  margin-top: 40px;
+  padding-top: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ag-footer-copy {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.ag-footer-legal {
+  display: flex;
+  gap: 24px;
+}
+
+.ag-footer-link--inline {
+  margin-bottom: 0;
+}

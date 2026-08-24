@@ -1,0 +1,296 @@
+.file-claim-body {
+  max-width: 800px;
+  padding: 28px 24px 64px;
+}
+
+.file-claim-page .ag-page-head {
+  margin-bottom: 32px;
+}
+
+.file-claim-page .ag-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin: 0 0 8px;
+  color: var(--ag-ink);
+}
+
+.file-claim-page .ag-page-subtitle {
+  font-size: 15px;
+  margin: 0;
+  color: var(--ag-ink-soft);
+}
+
+.file-claim-card {
+  border-color: var(--ag-border);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-normal);
+}
+
+.file-claim-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.file-claim-card .MuiCardContent-root {
+  padding: 28px;
+}
+
+.file-claim-form {
+  display: grid;
+  gap: 24px;
+}
+
+/* Section styles */
+.file-claim-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.file-claim-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ag-ink);
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* Two-column grid */
+.file-claim-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .file-claim-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.file-claim-form .MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.file-claim-form .MuiTextField-root .MuiOutlinedInput-root:hover {
+  border-color: var(--ag-ink-soft);
+}
+
+.file-claim-form .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.file-claim-form .MuiTextField-root textarea.MuiOutlinedInput-input {
+  min-height: 90px;
+}
+
+.file-claim-form .MuiInputLabel-root {
+  color: #6b7280;
+}
+
+.supporting-documents {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 2px dashed var(--ag-border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.supporting-documents:hover {
+  border-color: #0284c7;
+  background: linear-gradient(180deg, #f0f9ff 0%, #e8f4ff 100%);
+}
+
+.supporting-documents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.supporting-documents-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ag-ink);
+  margin-bottom: 4px;
+}
+
+.supporting-documents-help,
+.supporting-documents-limit {
+  color: var(--ag-ink-soft);
+  font-size: 13px;
+}
+
+.supporting-documents-button {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: all var(--transition-fast);
+}
+
+.supporting-documents-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.supporting-documents-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.supporting-documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.supporting-document-item {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--ag-border);
+  border-radius: 8px;
+  background: #ffffff;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.supporting-document-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.supporting-document-preview {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.supporting-document-name {
+  overflow: hidden;
+  color: var(--ag-ink-soft);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.supporting-document-item .MuiButton-root {
+  justify-self: start;
+  min-width: 0;
+  padding: 2px 4px;
+  text-transform: none;
+}
+
+.file-claim-actions,
+.file-claim-success {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.file-claim-actions .MuiButton-root {
+  min-width: 114px;
+  min-height: 46px;
+  border-radius: 6px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.file-claim-actions .MuiButton-contained:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+
+/* Success State */
+.file-claim-success-card {
+  border-color: #22c55e;
+}
+
+.file-claim-success-card .MuiCardContent-root {
+  padding: 48px 28px;
+}
+
+.file-claim-success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.file-claim-success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  animation: success-bounce 0.5s ease-out;
+}
+
+@keyframes success-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 600px) {
+  .file-claim-body {
+    padding: 24px 16px 48px;
+  }
+
+  .file-claim-page .ag-page-head {
+    margin-bottom: 24px;
+  }
+
+  .file-claim-page .ag-page-title {
+    font-size: 22px;
+  }
+
+  .file-claim-card .MuiCardContent-root {
+    padding: 20px 16px;
+  }
+
+  .file-claim-success-card .MuiCardContent-root {
+    padding: 32px 16px;
+  }
+
+  .supporting-documents {
+    padding: 20px 16px;
+  }
+
+  .supporting-documents-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .supporting-documents-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .file-claim-actions {
+    flex-direction: column-reverse;
+  }
+
+  .file-claim-actions .MuiButton-root {
+    width: 100%;
+  }
+}

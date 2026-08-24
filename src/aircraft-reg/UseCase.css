@@ -1,0 +1,112 @@
+
+.purpose-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;                   
+  background-color: transparent; 
+  padding: 8px; 
+  margin-bottom: 0.7rem;  
+  width: 100%;         
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+
+.option-card {
+  width: 100%;
+  background-color: #ffffff;  
+  border: 2px solid #e5e7eb;   
+  border-radius: 12px;         
+  padding: 18px;              
+  box-sizing: border-box;      
+  text-align: left;
+  font: inherit;
+  transition: all var(--transition-normal);
+}
+
+
+.option-card:hover {
+  cursor: pointer;
+  border-color: var(--primary-blue);      
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.option-card.selected {
+  border-color: var(--primary-blue);
+  background-color: #e8f4ff;
+  box-shadow: 0 0 0 3px rgba(0, 118, 189, 0.15);
+}
+
+.option-card:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 3px;
+}
+
+.validation-error {
+  margin: 4px 8px 0;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+
+
+.option-card h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.option-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-dark);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.option-card-icon {
+  color: var(--primary-blue);
+  font-size: 22px;
+  flex: 0 0 auto;
+}
+
+.option-card.selected .option-card-icon {
+  color: #075985;
+}
+
+.option-card p {
+  margin: 0;
+  color: #666666;
+  font-size: 14px;
+}
+
+.base-container{
+  margin-bottom: 0.7rem;
+}
+
+.aircraft-storage{
+  display :flex;
+  gap: 10px;
+  width : 96%;
+  background-color: #e8eef6;
+  padding : 12px;
+  border-radius: 10px;
+  align-items: stretch;
+  box-sizing: border-box;
+
+}
+
+.aircraft-storage > * {
+  flex: 1;
+  min-width: 0; 
+}
+
+
+
+

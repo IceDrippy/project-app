@@ -1,0 +1,266 @@
+
+.signup-container {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.progress-header {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.steps-wrapper {
+  display: flex;
+  justify-content: space-between;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.step-number {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 11px;
+  transition: all var(--transition-fast);
+}
+
+.active-step {
+  color: var(--primary-blue);
+  font-weight: 500;
+}
+
+.active-step .step-number {
+  background-color: var(--primary-blue);
+  color: white;
+  border-color: var(--primary-blue);
+  box-shadow: 0 2px 4px rgba(0, 118, 189, 0.3);
+}
+
+
+
+.sub-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 14px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--primary-blue);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.back-btn:hover {
+  color: var(--text-dark);
+  transform: translateX(-2px);
+}
+
+.back-btn .arrow {
+  font-size: 18px;
+}
+
+.autosave-status {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.green-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--success-green);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+
+.form-content {
+  width: 100%;
+  margin: 0 auto;
+  padding: 4px;
+  flex: 1;
+}
+
+.main-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.aircraft-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.action-footer {
+  position: static;
+  padding: 16px 0;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.submit-btn {
+  max-width: 300px;
+  width: 100%;
+  background-color: #0d1b2a;
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.submit-btn:hover {
+  background-color: #1b263b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 27, 42, 0.25);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+.aircraft-options-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+  max-width: 100%;
+}
+
+.aircraft-card-wrapper {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.aircraft-card {
+  min-height: 152px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.aircraft-card:hover {
+  background-color: #e8f4ff;
+  border-color: #90cdf4;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.aircraft-card.selected {
+  border-color: var(--primary-blue);
+  background-color: #e8f4ff;
+  box-shadow: 0 0 0 3px rgba(0, 118, 189, 0.15);
+}
+
+.aircraft-card-wrapper:focus-visible .aircraft-card {
+  outline: 3px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 3px;
+}
+
+.aircraft-image {
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: transform var(--transition-normal);
+}
+
+.aircraft-card:hover .aircraft-image {
+  transform: scale(1.02);
+}
+
+.aircraft-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.aircraft-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.aircraft-icon {
+  color: var(--primary-blue);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.aircraft-title-wrapper h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.aircraft-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .aircraft-options-container {
+    grid-template-columns: 1fr;
+  }
+
+  .aircraft-image {
+    width: 128px;
+    height: 96px;
+  }
+}
