@@ -68,9 +68,9 @@ const SIDEBAR_SECTIONS = [
       { label: "Medical Reviews", icon: <LocalHospitalOutlinedIcon fontSize="small" />, filter: "Medical" },
     ],
   },
-  {
-    headings : `Welcome Captain ${fullname}`
-  }
+  // {
+  //   headings : `Welcome Captain ${fullname}`
+  // }
 ];
 
 const isOpen = (status) => ["pending", "in review"].includes(String(status || "").trim().toLowerCase());
