@@ -18,7 +18,7 @@ import MyPolicies from "./pages/MyPolicies";
 import CurrentPlan from "./pages/PlanComparison";
 import Admin from "./pages/Admin";
 import ClaimReview from "./pages/ClaimReview";
-import {Payment} from "./aircraft-reg/Payment";
+import { Payment } from "./aircraft-reg/Payment";
 
 let referenceCounter = 1000;
 const sequence = () => `2026-${String(++referenceCounter)}`;
@@ -65,7 +65,7 @@ export default function App() {
     );
   };
 
-  // Registering an aircraft also opens the pilot document and medical review tasks.
+
   const addAircraft = (aircraft) => {
     const reference = sequence();
     const pilot = localStorage.getItem("fullname") || "Registered pilot";
@@ -107,20 +107,6 @@ export default function App() {
     ]);
   };
 
-  const addClaim = (claim) => {
-    setClaims((current) => [
-      ...current,
-      {
-        ...claim,
-        id: crypto.randomUUID(),
-        reference: `CLM-${sequence()}`,
-        pilot: localStorage.getItem("fullname") || "Registered pilot",
-        status: "Pending",
-        submittedAt: Date.now(),
-      },
-    ]);
-  };
-
   const resolveQueueItem = ({ source, id, status, entry }) => {
     const apply = (list) =>
       list.map((item) => (item.id === id ? { ...item, status } : item));
@@ -137,50 +123,89 @@ export default function App() {
   return (
     <main className="App">
       <Routes>
-        <Route
-          path="/"
-          element={<Home />}
-        />
-
-        <Route
-          path="/user-signup"
-          element={<SignUp/>}
-        />
+        <Route path="/" element={<Home />} />
+        <Route path="/user-signup" element={<SignUp />} />
 
         <Route
           path="/aircraft"
           element={
               <AircraftID
+                compSteps={completed}
+                addCompletedStep={addCompletedStep}
+                aircraftData={registrationData}
+                updateRegistrationData={updateRegistrationData}
+              />
+          }
+        />
+        <Route
+          path="/use-case"
+          element={
+            <UseCase
               compSteps={completed}
               addCompletedStep={addCompletedStep}
-              aircraftData={registrationData}
+              registrationData={registrationData}
               updateRegistrationData={updateRegistrationData}
             />
           }
         />
         <Route
-          path="/use-case"
-          element={<UseCase compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} updateRegistrationData={updateRegistrationData} />}
-        />
-        <Route
           path="/pilot"
-          element={<Pilot compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} updateRegistrationData={updateRegistrationData} />}
+          element={
+            <Pilot
+              compSteps={completed}
+              addCompletedStep={addCompletedStep}
+              registrationData={registrationData}
+              updateRegistrationData={updateRegistrationData}
+            />
+          }
         />
         <Route
           path="/coverage"
-          element={<Coverage compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} updateRegistrationData={updateRegistrationData} />}
+          element={
+            <Coverage
+              compSteps={completed}
+              addCompletedStep={addCompletedStep}
+              registrationData={registrationData}
+              updateRegistrationData={updateRegistrationData}
+            />
+          }
         />
         <Route
           path="/quote"
-          element={<Quote compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} updateRegistrationData={updateRegistrationData} resetRegistrationFlow={resetRegistrationFlow} />}
+          element={
+            <Quote
+              compSteps={completed}
+              addCompletedStep={addCompletedStep}
+              registrationData={registrationData}
+              updateRegistrationData={updateRegistrationData}
+              resetRegistrationFlow={resetRegistrationFlow}
+            />
+          }
         />
         <Route
           path="/manual"
-          element={<ManualSignUp compSteps={completed} registrationData={registrationData} updateRegistrationData={updateRegistrationData} />}
+          element={
+            <ManualSignUp
+              compSteps={completed}
+              registrationData={registrationData}
+              updateRegistrationData={updateRegistrationData}
+            />
+          }
         />
 
-        <Route path="/payment" element={<Payment compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} addAircraft={addAircraft} resetRegistrationFlow={resetRegistrationFlow}/>} />
-        <Route path="/dashboard" element={<Dashboard aircrafts={aircrafts} claims={claims} />} />
+        <Route
+          path="/payment"
+          element={
+            <Payment
+              compSteps={completed}
+              addCompletedStep={addCompletedStep}
+              registrationData={registrationData}
+              addAircraft={addAircraft}
+              resetRegistrationFlow={resetRegistrationFlow}
+            />
+          }
+        />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route
           path="/admin"
           element={
@@ -198,11 +223,11 @@ export default function App() {
           path="/admin/claims/:claimId"
           element={<ClaimReview claims={claims} resolveQueueItem={resolveQueueItem} />}
         />
-        <Route path="/aircrafts" element={<Aircrafts aircrafts={aircrafts} />} />
-        <Route path="/claims" element={<Claims claims={claims} />} />
-        <Route path="/file-claim" element={<FileClaim aircrafts={aircrafts} addClaim={addClaim} />} />
+        <Route path="/aircrafts" element={<Aircrafts />} />
+        <Route path="/claims" element={<Claims />} />
+        <Route path="/file-claim" element={<FileClaim />} />
         <Route path="/plans" element={<Plans />} />
-        <Route path="/my-policies" element={<MyPolicies aircrafts={aircrafts} />} />
+        <Route path="/my-policies" element={<MyPolicies />} />
         <Route path="/plan-compare" element={<CurrentPlan />} />
         <Route path="/login" element={<Login />} />
       </Routes>

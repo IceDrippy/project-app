@@ -195,7 +195,6 @@ export default function Claims() {
             </Button>
           </Box>
 
-          {/* Summary Cards */}
           <Grid container spacing={2.5} sx={{ marginBottom: 4 }} className="ag-summary-grid">
             {SUMMARY_CARDS.map((card) => (
               <Grid key={card.label} size={{ xs: 12, sm: 6, md: 3 }}>
@@ -246,7 +245,6 @@ export default function Claims() {
             ))}
           </Grid>
 
-          {/* Claims Table */}
           <Card variant="outlined" className="ag-panel">
             <CardContent>
               <Box
@@ -389,7 +387,6 @@ export default function Claims() {
         </Container>
       </Box>
 
-      {/* Footer */}
       <Box component="footer" className="ag-footer">
         <Container maxWidth="lg">
           <Grid container spacing={4}>

@@ -39,7 +39,7 @@ const INCIDENT_TYPES = [
   "Other",
 ];
 
-export default function FileClaim({ addClaim }) {
+export default function FileClaim() {
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
