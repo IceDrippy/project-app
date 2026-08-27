@@ -11,11 +11,14 @@ import TextField from "@mui/material/TextField";
 import FlightIcon from "@mui/icons-material/Flight";
 import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { object, string } from "yup";
 import "./SignUp.css";
+import { API_URL } from "../global";
 
 const RegistrySchema = object({
-    fullName: string().required("Full Name is required"),
+    fullname: string().required("Full Name is required"),
+    email : string().required(),
     gender: string().required("Gender is required"),
     username: string().required("Username is required"),
     password: string().min(6, "Password must be at least 6 characters").required("Password is required"),
@@ -29,10 +32,12 @@ const STEPS = [
 
 export function SignUp() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const { values, handleChange, handleBlur, handleSubmit, touched, errors } = useFormik({
     initialValues: {
-      fullName: "",
+      fullname: "",
       gender: "",
       username: "",
       email: "",
@@ -40,11 +45,21 @@ export function SignUp() {
     },
     validationSchema: RegistrySchema,
     onSubmit: (formValues) => {
-      localStorage.setItem("selectedGender", formValues.gender);
-      localStorage.setItem("fullname", formValues.fullName);
-      localStorage.setItem("isAuthenticated", "true");
-      navigate("/dashboard", { state: { gender: formValues.gender, fullname: formValues.fullName } });
-    },
+      setError("");
+      setLoading(true);
+      fetch(`${API_URL}/auth/signup`,{
+        method : "POST",
+        body: JSON.stringify(formValues),
+        headers:{
+          "Content-Type":"application/json"
+        }
+      })
+      .then((res) => res.ok ? res.json():Promise.reject("Access Denied"))
+      .then(() => navigate ("/login"))
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false))
+    }
+
   });
 
   return (
@@ -89,16 +104,15 @@ export function SignUp() {
           </Box>
 
           <form onSubmit={handleSubmit} className="signup-form">
-            {Boolean(Object.keys(errors).length && Object.keys(touched).length) && (
-              <Alert severity="error">Please correct the highlighted fields.</Alert>
-            )}
+
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TextField
               label="Full Name"
-              value={values.fullName}
+              value={values.fullname}
               onChange={handleChange} 
               onBlur={handleBlur}
-              name="fullName"
+              name="fullname"
               placeholder="John Doe"
               variant="outlined"
               fullWidth
@@ -139,7 +153,6 @@ export function SignUp() {
               onBlur={handleBlur}
               name="password"
               placeholder="••••••••"
-              type="password"
               variant="outlined"
               fullWidth
               error={Boolean(touched.password && errors.password)}
@@ -166,9 +179,10 @@ export function SignUp() {
               className="signup-submit-btn"
               variant="contained"
               type="submit"
+              disabled={loading}
               fullWidth
             >
-              Create Account
+              {loading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
 

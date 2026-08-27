@@ -1,10 +1,12 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
   Container,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -18,24 +20,26 @@ import NavigationIcon from "@mui/icons-material/Navigation";
 import SecurityIcon from "@mui/icons-material/Security";
 import ShieldIcon from "@mui/icons-material/Shield";
 import { useNavigate } from "react-router-dom";
+import { useState ,useEffect } from "react";
 import AppBarNav from "../AppBarNav";
 import "./MyPolicies.css";
+import { API_URL } from "../global";
 
 const COVERAGE_TIERS = {
-  smooth: {
-    label: "Smooth Skies",
+  standard: {
+    label: "Standard",
     color: "#0284c7",
     bg: "#e0f2fe",
     features: ["Hull Coverage", "Liability R1M", "Medical R100K"],
   },
-  crosswind: {
-    label: "Crosswind",
+  professional: {
+    label: "Professional",
     color: "#7c3aed",
     bg: "#ede9fe",
     features: ["Hull Coverage", "Liability R2M", "Medical R250K", "Ground Risk"],
   },
-  fullthrottle: {
-    label: "Full Throttle",
+  premium: {
+    label: "Premium",
     color: "#ea580c",
     bg: "#fff7ed",
     features: ["Hull Coverage", "Liability R5M", "Medical R500K", "Ground Risk", "Worldwide"],
@@ -55,7 +59,7 @@ const SUMMARY_CARDS = [
     icon: <NavigationIcon />,
     color: "#0284c7",
     getValue: (aircrafts) =>
-      `R${aircrafts.reduce((sum, a) => sum + (a.hullValue || 0), 0).toLocaleString()}`,
+      `R${aircrafts.reduce((sum, aircraft) => sum + Number(aircraft.hull_value || 0), 0).toLocaleString()}`,
     suffix: "insured value",
   },
   {
@@ -67,8 +71,97 @@ const SUMMARY_CARDS = [
   },
 ];
 
-export default function MyPolicies({ aircrafts = [] }) {
+export default function MyPolicies() {
   const navigate = useNavigate();
+  const [aircrafts, setAircrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem("token");
+
+    const loadAircrafts = async () => {
+      try {
+        const response = await fetch(`${API_URL}/aircrafts`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Unable to load aircraft.");
+
+        const data = await response.json();
+        setAircrafts(Array.isArray(data) ? data : data.aircrafts || []);
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message || "Unable to load aircraft.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAircrafts();
+    return () => controller.abort();
+  }, []);
+
+  const createPolicy = async (aircraft) => {
+    const token = localStorage.getItem("token");
+    const selectedTier = aircraft.selected_tier;
+
+    if (!selectedTier) {
+      setError("This aircraft does not have a coverage tier.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/policies/aircraft/${aircraft.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          selected_tier: selectedTier,
+          hull_value: aircraft.hull_value,
+          flight_purpose: aircraft.flight_purpose,
+          storage: aircraft.storage_location,
+          cert_level: aircraft.pilot_certification,
+          medical_status: aircraft.medical_status,
+          deductible: 2500,
+        }),
+      });
+
+      if (!response.ok) {
+        const responseData = await response.json().catch(() => ({}));
+        throw new Error(responseData.message || "Policy was not created.");
+      }
+
+      const responseData = await response.json();
+      const policy = responseData.policy || responseData;
+      setAircrafts((currentAircrafts) =>
+        currentAircrafts.map((currentAircraft) =>
+          currentAircraft.id === aircraft.id
+            ? {
+                ...currentAircraft,
+                status: policy.status || "Active",
+                policy_number: policy.policy_number,
+                premium: policy.premium,
+              }
+            : currentAircraft,
+        ),
+      );
+      setError("");
+    } catch (requestError) {
+      setError(requestError.message || "Policy was not created.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box className="ag-page">
@@ -76,6 +169,8 @@ export default function MyPolicies({ aircrafts = [] }) {
 
       <Box className="ag-body">
         <Container maxWidth="lg">
+          {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+
           {/* Page Header */}
           <Box className="ag-page-head">
             <Box>
@@ -147,7 +242,11 @@ export default function MyPolicies({ aircrafts = [] }) {
               </p>
             </Box>
 
-            {aircrafts.length > 0 ? (
+            {loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                <CircularProgress aria-label="Loading policies" />
+              </Box>
+            ) : aircrafts.length > 0 ? (
               <Table className="ag-table policies-table">
                 <TableHead>
                   <TableRow>
@@ -161,22 +260,22 @@ export default function MyPolicies({ aircrafts = [] }) {
                 </TableHead>
                 <TableBody>
                   {aircrafts.map((aircraft) => {
-                    const tier = COVERAGE_TIERS[aircraft.coverageTier] || COVERAGE_TIERS.smooth;
+                    const tier = COVERAGE_TIERS[aircraft.selected_tier] || COVERAGE_TIERS.standard;
                     return (
                       <TableRow key={aircraft.id} sx={{ "&:hover": { bgcolor: "#f8fafc" } }}>
                         <TableCell>
                           <Box>
                             <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                              {aircraft.name || `${aircraft.make} ${aircraft.model}`}
+                              {aircraft.name || `${aircraft.make || ""} ${aircraft.model || ""}`.trim() || "Unnamed aircraft"}
                             </Typography>
                             <Typography sx={{ fontSize: 13, color: "#64748b" }}>
-                              {aircraft.aircraftType}
+                              {aircraft.aircraft_type}
                             </Typography>
                           </Box>
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={aircraft.serialNum || "N/A"}
+                            label={aircraft.serial_number || "N/A"}
                             size="small"
                             sx={{
                               bgcolor: "#f1f5f9",
@@ -188,11 +287,11 @@ export default function MyPolicies({ aircrafts = [] }) {
                           />
                         </TableCell>
                         <TableCell sx={{ color: "#64748b" }}>
-                          {aircraft.homeBase || "—"}
+                          {aircraft.home_base || "—"}
                         </TableCell>
                         <TableCell>
                           <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                            R{(aircraft.hullValue || 0).toLocaleString()}
+                            R{Number(aircraft.hull_value || 0).toLocaleString()}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -210,7 +309,7 @@ export default function MyPolicies({ aircrafts = [] }) {
                         <TableCell>
                           <Chip
                             icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                            label="Active"
+                            label={aircraft.status || "Pending"}
                             size="small"
                             sx={{
                               bgcolor: "#dcfce7",
@@ -259,17 +358,17 @@ export default function MyPolicies({ aircrafts = [] }) {
               <p className="policies-details-heading">Coverage Details</p>
               <Box className="policies-details-grid">
                 {aircrafts.map((aircraft) => {
-                  const tier = COVERAGE_TIERS[aircraft.coverageTier] || COVERAGE_TIERS.smooth;
+                    const tier = COVERAGE_TIERS[aircraft.selected_tier] || COVERAGE_TIERS.standard;
                   return (
                     <Card key={aircraft.id} variant="outlined" className="policies-detail-card">
                       <CardContent>
                         <Box className="policies-detail-header">
                           <Box>
                             <p className="policies-detail-name">
-                              {aircraft.name || `${aircraft.make} ${aircraft.model}`}
+                              {aircraft.name || `${aircraft.make || ""} ${aircraft.model || ""}`.trim()}
                             </p>
                             <p className="policies-detail-serial">
-                              S/N: {aircraft.serialNum || "N/A"}
+                              S/N: {aircraft.serial_number || "N/A"}
                             </p>
                           </Box>
                           <Chip
@@ -294,16 +393,29 @@ export default function MyPolicies({ aircrafts = [] }) {
                           <Box>
                             <p className="policies-detail-label">Hull Value</p>
                             <p className="policies-detail-value">
-                              R{(aircraft.hullValue || 0).toLocaleString()}
+                              R{Number(aircraft.hull_value || 0).toLocaleString()}
                             </p>
                           </Box>
                           <Box>
                             <p className="policies-detail-label">Annual Premium</p>
                             <p className="policies-detail-value policies-detail-premium">
-                              R{Math.round((aircraft.hullValue || 0) * 0.012).toLocaleString()}/yr
+                              R{Math.round(Number(aircraft.hull_value || 0) * 0.012).toLocaleString()}/yr
                             </p>
                           </Box>
                         </Box>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          disabled={loading}
+                          onClick={() => createPolicy(aircraft)}
+                          sx={{
+                            mt: 2,
+                            bgcolor: "#ea580c !important",
+                            "&:hover": { bgcolor: "#c2410c !important" },
+                          }}
+                        >
+                          {loading ? "Creating Policy..." : "Create Policy"}
+                        </Button>
                       </CardContent>
                     </Card>
                   );

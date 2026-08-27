@@ -18,11 +18,11 @@ const RegistrySchema = object({
     .required("Aircraft year is required"),
   make: string().trim().required("Aircraft make is required"),
   model: string().trim().required("Aircraft model is required"),
-  engineType: string().trim().required("Engine type is required"),
-  serialNum: string().trim().required("Aircraft serial number is required"),
+  engine_type: string().trim().required("Engine type is required"),
+serial_number: string().trim().required("Aircraft serial number is required"),
 });
 
-export function ManualSignUp({ compSteps = [], addCompletedStep, registrationData = {}, updateRegistrationData }) {
+export function ManualSignUp({ compSteps = [], addCompletedStep , updateRegistrationData }) {
   const navigate = useNavigate();
 
   const label = { slotProps: { input: { "aria-label": "Checkbox demo", readOnly: true } } };
@@ -36,11 +36,11 @@ export function ManualSignUp({ compSteps = [], addCompletedStep, registrationDat
 
   const { values, handleChange, handleBlur, handleSubmit, touched, errors } = useFormik({
   initialValues: {
-    year: registrationData.year || "",
-    make: registrationData.make || "",
-    model: registrationData.model || "",
-    engineType: registrationData.engineType || "",
-    serialNum: registrationData.serialNum || "",
+    year :  "",
+    make :  "",
+    model : "",
+    engine_type :  "",
+    serial_number : "",
   },
   validationSchema: RegistrySchema,
   onSubmit: () => {
@@ -135,28 +135,28 @@ export function ManualSignUp({ compSteps = [], addCompletedStep, registrationDat
 
       <TextField
         label="Engine Type"
-        value={values.engineType}
+        value={values.engine_type}
         onChange={handleChange}
         onBlur={handleBlur}
-        name="engineType"
+        name="engine_type"
         placeholder="Turbofan"
         variant="outlined"
         fullWidth
-        error={Boolean(touched.engineType && errors.engineType)}
-        helperText={touched.engineType && errors.engineType ? errors.engineType : null}
+        error={Boolean(touched.engine_type && errors.engine_type)}
+        helperText={touched.engine_type && errors.engine_type ? errors.engine_type : null}
       />
 
       <TextField
         label="Serial Number"
-        value={values.serialNum}
+        value={values.serial_number}
         onChange={handleChange}
         onBlur={handleBlur}
-        name="serialNum"
+        name="serial_number"
         placeholder="12345JJ79T"
         variant="outlined"
         fullWidth
-        error={Boolean(touched.serialNum && errors.serialNum)}
-        helperText={touched.serialNum && errors.serialNum ? errors.serialNum : null}
+        error={Boolean(touched.serial_number && errors.serial_number)}
+        helperText={touched.serial_number && errors.serial_number ? errors.serial_number : null}
       />
       </main>
 

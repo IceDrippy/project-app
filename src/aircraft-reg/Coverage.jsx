@@ -4,11 +4,11 @@ import { Box, Button, Card, Checkbox, Chip, Slider, Typography } from "@mui/mate
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import "./WizardPage.css";
 
-export function Coverage({ compSteps = [], addCompletedStep, registrationData = {}, updateRegistrationData }) {
+export function Coverage({ compSteps = [], addCompletedStep, updateRegistrationData }) {
   const navigate = useNavigate();
 
-  const [hullValue, setHullValue] = useState(registrationData.hullValue || 450000);
-  const [selectedTier, setSelectedTier] = useState(registrationData.selectedTier || "professional");
+  const [hullValue, setHullValue] = useState(450000);
+  const [selectedTier, setSelectedTier] = useState("professional");
   const label = { slotProps: { input: { 'aria-label': 'Checkbox demo', 'readOnly': true } } };
   const steps = [
     { number: 1, label: 'Aircraft', active: false},

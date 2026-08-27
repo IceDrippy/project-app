@@ -11,16 +11,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./WizardPage.css";
 
-export function Pilot({ compSteps = [], addCompletedStep, registrationData = {}, updateRegistrationData }) {
+export function Pilot({ compSteps = [], addCompletedStep, updateRegistrationData }) {
   const navigate = useNavigate();
 
-  const [pilotCert, setPilotCert] = useState(registrationData.pilotCert || "PPL License");
-  const [medicalStatus, setMedicalStatus] = useState(registrationData.medicalStatus || "First Class - Active");
-  const [hours, setHours] = useState(registrationData.hours || {
+  const [pilot_certification, setpilot_certification] = useState("PPL License");
+  const [medical_status, setmedical_status] = useState( "First Class - Active");
+  const [total_flight_hours, settotal_flight_hours] = useState( {
     total: "",
-    retractable: "",
-    multiEngine: "",
-    makeModel: "",
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadError, setUploadError] = useState("");
@@ -30,20 +27,13 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
   };
 
   const hourTracker = [
-    { id: "total", label: "Total Logged Flight Hours" },
-    { id: "retractable", label: "Retractable Gear Hours" },
-    { id: "multiEngine", label: "Multi-Engine Flight Hours" },
-    { id: "makeModel", label: "Hours in Make/Model" },
+    { id: "total", label: "Total Logged Flight total_flight_hours" },
   ];
 
-  const hasHoursError = Number(hours.makeModel) > Number(hours.total);
+  const hastotal_flight_hoursError = false;
 
   const handleContinue = () => {
-    if (hasHoursError) {
-      return;
-    }
-
-    updateRegistrationData?.({ pilotCert, medicalStatus, hours });
+    updateRegistrationData?.({ pilot_certification, medical_status, total_flight_hours });
     if (typeof addCompletedStep === "function") {
       addCompletedStep(3);
     }
@@ -58,9 +48,9 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
     { number: 5, label: 'Quote', active: false  },
   ];
 
-  const handleHoursChange = (field) => (event) => {
+  const handletotal_flight_hoursChange = (field) => (event) => {
     const value = event.target.value;
-    setHours((current) => ({ ...current, [field]: value }));
+    settotal_flight_hours((current) => ({ ...current, [field]: value }));
   };
 
   const handleFileChange = (event) => {
@@ -144,15 +134,15 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
           Pilot Logbook & Qualifications
           </Typography>
           <Typography variant="body2" className="wizard-subtitle">
-          Underwriting rates rely heavily on flight hours and verified certifications.
+          Underwriting rates rely heavily on flight total_flight_hours and verified certifications.
           </Typography>
 
         <Box className="wizard-grid-two">
           <TextField
             select
             label="Pilot Cert Level"
-            value={pilotCert}
-            onChange={(event) => setPilotCert(event.target.value)}
+            value={pilot_certification}
+            onChange={(event) => setpilot_certification(event.target.value)}
             variant="outlined"
             fullWidth
           >
@@ -164,8 +154,8 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
           <TextField
             select
             label="Medical Status"
-            value={medicalStatus}
-            onChange={(event) => setMedicalStatus(event.target.value)}
+            value={medical_status}
+            onChange={(event) => setmedical_status(event.target.value)}
             variant="outlined"
             fullWidth
           >
@@ -182,10 +172,10 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
                 {item.label}
               </Typography>
 
-              <Box className="wizard-hours-box">
+              <Box className="wizard-total_flight_hours-box">
                 <TextField
-                  value={hours[item.id]}
-                  onChange={handleHoursChange(item.id)}
+                  value={total_flight_hours[item.id]}
+                  onChange={handletotal_flight_hoursChange(item.id)}
                   size="small"
                   fullWidth
                   sx={{
@@ -201,15 +191,6 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
           ))}
         </Box>
 
-        {hasHoursError && (
-          <Alert
-            severity="warning"
-            variant="outlined"
-            sx={{ bgcolor: "#fff7ed", color: "#c2410c", borderColor: "#ffedd5", mb: 4, borderRadius: 2 }}
-          >
-            Make/Model hours cannot exceed total logged flight hours.
-          </Alert>
-        )}
 
         <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#1e293b", mb: 1.5 }}>
           Upload Credentials
@@ -263,7 +244,7 @@ export function Pilot({ compSteps = [], addCompletedStep, registrationData = {},
             },
           }}
           onClick={handleContinue}
-          disabled={hasHoursError}
+          disabled={hastotal_flight_hoursError}
         >
           Continue
         </Button>

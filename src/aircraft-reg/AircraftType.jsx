@@ -10,8 +10,8 @@ import LightJet from "../assets/light-jet.jpg";
 import Helicopter from "../assets/helicopter.jpg";
 import "./AircraftType.css";
 
-export function AircraftID({ compSteps = [], addCompletedStep, aircraftData = {}, updateRegistrationData }) {
-  const [selectedAircraft, setSelectedAircraft] = useState(aircraftData.aircraftType || null);
+export function AircraftID({ compSteps = [], addCompletedStep, updateRegistrationData }) {
+  const [selectedAircraft, setSelectedAircraft] = useState(null);
   const label = { slotProps: { input: { 'aria-label': 'Checkbox demo', 'readOnly': true } } };
   const steps = [
     { number: 1, label: 'Aircraft', active: true},
@@ -162,7 +162,7 @@ export function AircraftID({ compSteps = [], addCompletedStep, aircraftData = {}
           }}
           onClick={() => {
             if (selectedAircraft) {
-              updateRegistrationData?.({ aircraftType: selectedAircraft });
+              updateRegistrationData?.({ aircraft_type: selectedAircraft });
               addCompletedStep?.(1);
               navigate("/manual");
             }

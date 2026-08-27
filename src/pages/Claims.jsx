@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Box,
   Container,
   Typography,
@@ -13,6 +14,7 @@ import {
   TableRow,
   TableCell,
   Chip,
+  CircularProgress,
   TextField,
   IconButton,
   Tooltip,
@@ -31,6 +33,7 @@ import PendingIcon from "@mui/icons-material/Pending";
 import "./Claims.css";
 import AppBarNav from "../AppBarNav";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../global";
 
 const SUMMARY_CARDS = [
   {
@@ -94,16 +97,49 @@ const formatDate = (value) =>
     ? new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", year: "numeric" }).format(new Date(value))
     : "—";
 
-export default function Claims({ claims = [] }) {
+export default function Claims() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [claims, setClaims] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem("token");
+
+    const loadClaims = async () => {
+      try {
+        const response = await fetch(`${API_URL}/claims`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Unable to load claims.");
+
+        const data = await response.json();
+        setClaims(Array.isArray(data) ? data : data.claims || []);
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message || "Unable to load claims.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClaims();
+    return () => controller.abort();
+  }, []);
 
   const rows = claims.map((claim) => ({
-    id: claim.reference,
-    tail: claim.aircraft,
-    dateFiled: formatDate(claim.incidentDate || claim.submittedAt),
-    type: claim.type,
-    amount: `R${Number(claim.amount || 0).toLocaleString()}`,
+    id: claim.claim_reference || claim.id || "N/A",
+    tail: claim.aircraft?.aircraft_type || claim.aircraft_id || "N/A",
+    dateFiled: formatDate(claim.incident_date || claim.submitted_at),
+    type: claim.incident_description || "Incident",
+    amount: `R${Number(claim.claim_amount || 0).toLocaleString()}`,
     status: claim.status,
   }));
 
@@ -128,6 +164,7 @@ export default function Claims({ claims = [] }) {
 
       <Box className="ag-body">
         <Container maxWidth="lg">
+          {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
           {/* Page Header */}
           <Box className="ag-page-head">
             <Box>
@@ -268,7 +305,11 @@ export default function Claims({ claims = [] }) {
                 </Stack>
               </Box>
 
-              {filteredClaims.length > 0 ? (
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                  <CircularProgress aria-label="Loading claims" />
+                </Box>
+              ) : filteredClaims.length > 0 ? (
                 <Table className="ag-table">
                   <TableHead>
                     <TableRow>

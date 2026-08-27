@@ -6,6 +6,8 @@ import TwinEngineImage from "../assets/twin-engine.jpg";
 import LightJetImage from "../assets/light-jet.jpg";
 import HelicopterImage from "../assets/helicopter.jpg";
 import "./Aircrafts.css";
+import { useEffect, useState } from "react";
+import { API_URL } from "../global";
 
 const FOOTER_COLUMNS = [
   { heading: "PLATFORM", links: ["Fleet Underwriting", "Risk Assessment", "Compliance Portal"] },
@@ -20,14 +22,49 @@ const imageByType = {
   helicopter: HelicopterImage,
 };
 
-export default function Aircrafts({ aircrafts = [] }) {
+export default function Aircrafts() {
   const navigate = useNavigate();
+  const [aircrafts, setAircrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem("token");
+
+    const loadAircrafts = async () => {
+      try {
+        const response = await fetch(`${API_URL}/aircrafts`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Unable to load aircraft.");
+
+        const data = await response.json();
+        setAircrafts(Array.isArray(data) ? data : data.aircrafts || []);
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message || "Unable to load aircraft.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAircrafts();
+    return () => controller.abort();
+  }, []);
 
   return (
     <Box className="ag-page aircrafts-page">
       <AppBarNav />
 
       <Container maxWidth="lg" className="aircrafts-body">
+        {error && <p role="alert" className="aircrafts-error">{error}</p>}
+
         <Box className="aircrafts-header">
           <Box>
             <h1 className="ag-page-title">ALL AIRCRAFT</h1>
@@ -37,22 +74,23 @@ export default function Aircrafts({ aircrafts = [] }) {
         </Box>
 
         <Box className="aircrafts-list">
-          {aircrafts.map((aircraft) => (
+          {loading && <p>Loading aircraft...</p>}
+          {!loading && aircrafts.map((aircraft) => (
             <Card key={aircraft.id} variant="outlined" className="aircraft-list-card">
-              <Box component="img" src={imageByType[aircraft.picture] || imageByType.single} alt={aircraft.name} className="aircraft-list-image" />
+              <Box component="img" src={imageByType[aircraft.aircraft_type] || imageByType.single} alt={aircraft.aircraft_type || "Aircraft"} className="aircraft-list-image" />
               <CardContent className="aircraft-list-content">
-                <p className="aircraft-list-title">{aircraft.name}</p>
-                <p className="aircraft-list-type">{aircraft.aircraftType}</p>
+                <p className="aircraft-list-title">{`${aircraft.make || ""} ${aircraft.model || ""}`.trim() || "Unnamed aircraft"}</p>
+                <p className="aircraft-list-type">{aircraft.aircraft_type || "Type not provided"}</p>
                 <Box className="aircraft-list-details">
-                  <p><strong>Serial number:</strong> {aircraft.serialNum}</p>
-                  <p><strong>Home base:</strong> {aircraft.homeBase}</p>
-                  <p><strong>Usage:</strong> {aircraft.flightPurpose}</p>
-                  <p><strong>Coverage tier:</strong> {aircraft.coverageTier}</p>
+                  <p><strong>Serial number:</strong> {aircraft.serial_number || "Not provided"}</p>
+                  <p><strong>Home base:</strong> {aircraft.home_base || "Not provided"}</p>
+                  <p><strong>Usage:</strong> {aircraft.flight_purpose || "Not provided"}</p>
+                  <p><strong>Coverage tier:</strong> {aircraft.selected_tier || "Not provided"}</p>
                 </Box>
               </CardContent>
             </Card>
           ))}
-          {aircrafts.length === 0 && (
+          {!loading && !error && aircrafts.length === 0 && (
             <Card variant="outlined" className="aircraft-empty-card">
               <p>No aircraft registered yet.</p>
               <Button variant="contained" onClick={() => navigate("/aircraft")}>Register aircraft</Button>

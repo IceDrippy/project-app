@@ -1,13 +1,19 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Card, Checkbox, Chip, Divider, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, Checkbox, Chip, Divider, Stack, Typography } from "@mui/material";
 import NavigationIcon from "@mui/icons-material/Navigation";
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { buildQuoteSummary } from "./quoteCalculator";
 import "./WizardPage.css";
+import { API_URL } from "../global";
+import { Register } from "./Register";
 
-export function Quote({ compSteps = [], addCompletedStep, registrationData = {}, updateRegistrationData }) {
+export function Quote({ compSteps, addCompletedStep, registrationData , updateRegistrationData, resetRegistrationFlow }) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  
   const label = { slotProps: { input: { "aria-label": "Checkbox demo", readOnly: true } } };
   const steps = [
     { number: 1, label: "Aircraft", active: false },
@@ -17,16 +23,18 @@ export function Quote({ compSteps = [], addCompletedStep, registrationData = {},
     { number: 5, label: "Quote", active: true },
   ];
 
+
   const quoteSummary = buildQuoteSummary({
-    hullValue: registrationData.hullValue || 450000,
-    selectedTier: registrationData.selectedTier || "professional",
-    flightPurpose: registrationData.flightPurpose || "Pleasure and Buisness",
-    storage: registrationData.storage || "Hangar",
-    totalHours: Number(registrationData.hours?.total) || 0,
-    certLevel: registrationData.pilotCert || "PPL License",
-    medicalStatus: registrationData.medicalStatus || "First Class - Active",
+    hullValue: registrationData.hullValue,
+    selectedTier: registrationData.selectedTier ,
+    flightPurpose: registrationData.flight_purpose, 
+    storage: registrationData.storage_location ,
+    totalHours: Number(registrationData.hours?.total) ,
+    certLevel: registrationData.pilotCert ,
+    medicalStatus: registrationData.medicalStatus,
     deductible: 2500,
   });
+
 
   const aircraftLabel = [registrationData.year, registrationData.make, registrationData.model]
     .filter(Boolean)
@@ -74,6 +82,7 @@ export function Quote({ compSteps = [], addCompletedStep, registrationData = {},
       
 
       <Card className="wizard-card">
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Typography variant="h5" className="wizard-title">
           Your Insurance Quote
         </Typography>
@@ -260,7 +269,8 @@ export function Quote({ compSteps = [], addCompletedStep, registrationData = {},
         <footer className="action-footer">
           <Button
             variant="contained"
-            onClick={() => {
+            disabled={loading}
+            onClick={async () => {
               const isSignedIn =
                 localStorage.getItem("isAuthenticated") === "true" &&
                 Boolean(localStorage.getItem("fullname")?.trim());
@@ -271,19 +281,52 @@ export function Quote({ compSteps = [], addCompletedStep, registrationData = {},
                 return;
               }
 
+              setError("");
+              setLoading(true);
+
               if (typeof addCompletedStep === "function") {
                 addCompletedStep(5);
               }
-              updateRegistrationData?.({ quoteSummary });
-              navigate("/payment");
+
+              const aircraftPayload = Register(registrationData);
+              const token = localStorage.getItem("token");
+
+              try {
+                const response = await fetch(`${API_URL}/aircrafts`, {
+                  method: "POST",
+                  body: JSON.stringify(aircraftPayload),
+                  headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  },
+                });
+
+                if (!response.ok) {
+                  const responseData = await response.json().catch(() => ({}));
+                  throw new Error(responseData.message || "Unable to register aircraft.");
+                }
+
+                const aircraftResponse = await response.json();
+                const aircraft = aircraftResponse.aircraft || aircraftResponse;
+                
+
+                updateRegistrationData?.({ quoteSummary });
+                resetRegistrationFlow?.();
+                navigate("/dashboard");
+              } catch (requestError) {
+                setError(requestError.message || "Unable to register aircraft.");
+              } finally {
+                setLoading(false);
+              }
             }}
             className="wizard-primary-btn"
             sx={{ bgcolor: "#ea580c !important", "&:hover": { bgcolor: "#c2410c !important" } }}
           >
-            Continue to Payment
+            {loading ? "Adding Aircraft..." : "Add Aircraft"}
           </Button>
         </footer>
       </Card>
     </Box>
   );
 }
+

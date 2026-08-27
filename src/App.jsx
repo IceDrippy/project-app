@@ -37,9 +37,6 @@ const defaultRegistrationData = {
   medicalStatus: "First Class - Active",
   hours: {
     total: "",
-    retractable: "",
-    multiEngine: "",
-    makeModel: "",
   },
   hullValue: 450000,
   selectedTier: "professional",
@@ -175,7 +172,7 @@ export default function App() {
         />
         <Route
           path="/quote"
-          element={<Quote compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} updateRegistrationData={updateRegistrationData} />}
+          element={<Quote compSteps={completed} addCompletedStep={addCompletedStep} registrationData={registrationData} updateRegistrationData={updateRegistrationData} resetRegistrationFlow={resetRegistrationFlow} />}
         />
         <Route
           path="/manual"

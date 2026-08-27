@@ -28,15 +28,6 @@ export function Payment({ compSteps = [], addCompletedStep, registrationData = {
   const [billingZip, setBillingZip] = useState("");
   const [errors, setErrors] = useState({});
 
-  const steps = [
-    { number: 1, label: "Aircraft", active: false },
-    { number: 2, label: "Use Case", active: false },
-    { number: 3, label: "Pilot", active: false },
-    { number: 4, label: "Coverage", active: false },
-    { number: 5, label: "Quote", active: false },
-    { number: 6, label: "Payment", active: true },
-  ];
-
   const quoteSummary = buildQuoteSummary({
     hullValue: registrationData.hullValue || 450000,
     selectedTier: registrationData.selectedTier || "professional",
@@ -88,10 +79,6 @@ export function Payment({ compSteps = [], addCompletedStep, registrationData = {
       return;
     }
 
-    if (typeof addCompletedStep === "function") {
-      addCompletedStep(6);
-    }
-
     if (typeof addAircraft === "function") {
       addAircraft({
         name: aircraftLabel !== "Aircraft details pending" ? aircraftLabel : "Unnamed aircraft",
@@ -105,9 +92,6 @@ export function Payment({ compSteps = [], addCompletedStep, registrationData = {
       });
     }
 
-    if (typeof resetRegistrationFlow === "function") {
-      resetRegistrationFlow();
-    }
 
     navigate("/dashboard");
   };

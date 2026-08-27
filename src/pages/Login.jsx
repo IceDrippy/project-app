@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { object, string } from "yup";
 import "./Login.css";
+import { API_URL } from "../global";
 
 const loginSchema = object({
   username: string()
@@ -19,8 +20,6 @@ const loginSchema = object({
     .min(4, "Username must be at least 4 characters"),
   password: string()
     .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .max(12, "Password must be 12 characters or fewer"),
 });
 
 const FEATURES = [
@@ -46,23 +45,34 @@ export function Login() {
         setError("");
         setLoading(true);
 
-        try {
-          if (!formValues.username || !formValues.password) {
-            setError("Please enter both username and password.");
-            return;
+        fetch(`${API_URL}/auth/login`,{
+          method : 'POST',
+          body : JSON.stringify(formValues),
+          headers:{
+            "Content-Type":"application/json"
           }
+        })
 
-          await new Promise((resolve) => setTimeout(resolve, 400));
-          localStorage.setItem("fullname", formValues.username);
+        .then((res) => res.ok ? res.json() : Promise.reject("Access Denied"))
+        .then((data) =>{
+          localStorage.setItem("role" , data.role);
+          localStorage.setItem("token" ,data.token);
+          localStorage.setItem( "fullname" , data.fullname);
           localStorage.setItem("isAuthenticated", "true");
-          navigate("/dashboard");
-        } catch {
-          setError("Unable to log in. Please try again.");
-        } finally {
-          setLoading(false);
-        }
+        })
+        .then(() => navigate("/dashboard"))
+        .catch((err) => setError(err))
+        .finally(() => setLoading(false))
+
+
+        //   localStorage.setItem("fullname", formValues.username);
+        //   localStorage.setItem("isAuthenticated", "true");
       },
     });
+
+    useEffect(() => {
+    localStorage.clear();
+    }, []);
 
   return (
     <Box className="login-page">

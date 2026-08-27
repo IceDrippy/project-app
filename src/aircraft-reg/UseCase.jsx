@@ -11,7 +11,7 @@ import LocalParkingIcon from "@mui/icons-material/LocalParking";
 import SchoolIcon from "@mui/icons-material/School";
 import WarehouseIcon from "@mui/icons-material/Warehouse";
 
-export function UseCase({ compSteps = [], addCompletedStep, registrationData = {}, updateRegistrationData }) {
+export function UseCase({ compSteps = [], addCompletedStep, updateRegistrationData }) {
   const navigate = useNavigate();
 
   const label = { slotProps: { input: { "aria-label": "Checkbox demo", readOnly: true } } };
@@ -23,7 +23,7 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
     { number: 5, label: "Quote", active: false },
   ];
 
-  const flightPurposes = [
+  const flight_purposes = [
     { purpose: "Pleasure and Buisness", description: "Personal flying and non-commercial buisness trips", icon: FlightTakeoffIcon },
     { purpose: "Industrial Aid", description: "Corporate transport flown by pro pilots", icon: BusinessCenterIcon },
     { purpose: "Commercial Charter", description: "Part 135 on-demand passenger/cargo", icon: LandscapeIcon },
@@ -35,27 +35,27 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
     { label: "Tiedown", icon: LandscapeIcon },
     { label: "Maintained Ramp", icon: LocalParkingIcon },
   ];
-  const [storage, setStorage] = useState(registrationData.storage || "");
-  const [homeBase, setHomeBase] = useState(registrationData.homeBase || "");
-  const [flightPurpose, setSelectedPurpose] = useState(registrationData.flightPurpose || null);
+  const [storage_location, setStorage] = useState("");
+  const [home_base, setHomeBase] = useState("");
+  const [flight_purpose, setSelectedPurpose] = useState(null);
   const [errors, setErrors] = useState({});
 
   const validate = () => {
     const nextErrors = {};
-    const normalizedHomeBase = homeBase.trim().toUpperCase();
+    const normalizedHomeBase = home_base.trim().toUpperCase();
 
-    if (!flightPurpose) {
-      nextErrors.flightPurpose = "Select the primary purpose of flight.";
+    if (!flight_purpose) {
+      nextErrors.flight_purpose = "Select the primary purpose of flight.";
     }
 
     if (!normalizedHomeBase) {
-      nextErrors.homeBase = "Home airport base is required.";
+      nextErrors.home_base = "Home airport base is required.";
     } else if (!/^[A-Z]{3,4}$/.test(normalizedHomeBase)) {
-      nextErrors.homeBase = "Enter a valid 3 or 4-letter ICAO/FAA airport code.";
+      nextErrors.home_base = "Enter a valid 3 or 4-letter ICAO/FAA airport code.";
     }
 
-    if (!storage) {
-      nextErrors.storage = "Select where the aircraft is parked.";
+    if (!storage_location) {
+      nextErrors.storage_location = "Select where the aircraft is parked.";
     }
 
     return nextErrors;
@@ -69,7 +69,7 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
       return;
     }
 
-    updateRegistrationData?.({ flightPurpose, storage, homeBase: homeBase.trim().toUpperCase() });
+    updateRegistrationData?.({ flight_purpose, storage_location, home_base: home_base.trim().toUpperCase() });
     addCompletedStep?.(2);
     navigate("/pilot");
   };
@@ -118,10 +118,10 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
 
         <section className="input-group">
           <div className="purpose-container">
-            <h4>Primary Purpose of Flight</h4>
+            <h3>Primary Purpose of Flight</h3>
             <div className="purpose-options">
-              {flightPurposes.map((purpose) => {
-                const isSelected = flightPurpose === purpose.purpose;
+              {flight_purposes.map((purpose) => {
+                const isSelected = flight_purpose === purpose.purpose;
                 const PurposeIcon = purpose.icon;
 
                 return (
@@ -132,7 +132,7 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
                     aria-pressed={isSelected}
                     onClick={() => {
                       setSelectedPurpose(purpose.purpose);
-                      setErrors((current) => ({ ...current, flightPurpose: undefined }));
+                      setErrors((current) => ({ ...current, flight_purpose: undefined }));
                     }}
                   >
                     <span className="option-card-heading">
@@ -144,7 +144,7 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
                 );
               })}
             </div>
-            {errors.flightPurpose && <p className="validation-error">{errors.flightPurpose}</p>}
+            {errors.flight_purpose && <p className="validation-error">{errors.flight_purpose}</p>}
           </div>
 
           <div className="base-container">
@@ -153,23 +153,23 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
               variant="outlined"
               onChange={(event) => {
                 setHomeBase(event.target.value.toUpperCase());
-                setErrors((current) => ({ ...current, homeBase: undefined }));
+                setErrors((current) => ({ ...current, home_base: undefined }));
               }}
-              value={homeBase}
+              value={home_base}
               placeholder="Base"
               className="registration-input"
               fullWidth
-              error={Boolean(errors.homeBase)}
-              helperText={errors.homeBase || "Enter a 3 or 4-letter ICAO/FAA code (e.g. KLAX, KOSH)."}
+              error={Boolean(errors.home_base)}
+              helperText={errors.home_base || "Enter a 3 or 4-letter ICAO/FAA code (e.g. KLAX, KOSH)."}
               slotProps={{ htmlInput: { maxLength: 4 } }}
             />
           </div>
 
-          <div className="aircraft-storage-container">
+          <div className="aircraft-storage_location-container">
             <label className="input-label">Where is the aircraft parked?</label>
-            <div className="aircraft-storage">
+            <div className="aircraft-storage_location">
               {storageOptions.map((option) => {
-                const isSelected = storage === option.label;
+                const isSelected = storage_location === option.label;
                 const StorageIcon = option.icon;
 
                 return (
@@ -180,7 +180,7 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
                     aria-pressed={isSelected}
                     onClick={() => {
                       setStorage(option.label);
-                      setErrors((current) => ({ ...current, storage: undefined }));
+                      setErrors((current) => ({ ...current, storage_location: undefined }));
                     }}
                   >
                     <span className="option-card-heading">
@@ -191,7 +191,7 @@ export function UseCase({ compSteps = [], addCompletedStep, registrationData = {
                 );
               })}
             </div>
-            {errors.storage && <p className="validation-error">{errors.storage}</p>}
+            {errors.storage_location && <p className="validation-error">{errors.storage_location}</p>}
           </div>
         </section>
         </main>

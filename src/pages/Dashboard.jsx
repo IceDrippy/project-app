@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -24,6 +24,7 @@ import TwinEngineImage from "../assets/twin-engine.jpg";
 import LightJetImage from "../assets/light-jet.jpg";
 import HelicopterImage from "../assets/helicopter.jpg";
 import "./Dashboard.css";
+import { API_URL } from "../global";
 
 const AIRCRAFT_IMAGES = {
   single: SingleEngineImage,
@@ -38,21 +39,56 @@ const FOOTER_COLUMNS = [
   { heading: "COMPANY", links: ["About Us", "Partners", "Contact"] },
 ];
 
-export default function Dashboard({ aircrafts = [] }) {
-  const { state } = useLocation();
+export default function Dashboard() {
+  
   const navigate = useNavigate();
-  const gender = state?.gender || localStorage.getItem("selectedGender") || "";
-  const fullname = state?.fullname || localStorage.getItem("fullname") || "";
+  const gender = localStorage.getItem("gender");
+  const fullname =localStorage.getItem("fullname") || "";
+  const [aircrafts, setAircrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const totalAircraftValue = aircrafts.reduce(
-    (total, aircraft) => total + Number(aircraft.hullValue || 0),
+    (total, aircraft) => total + Number(aircraft.hull_value || 0),
     0,
   );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem("token");
+
+    const loadAircrafts = async () => {
+      try {
+        const response = await fetch(`${API_URL}/aircrafts`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Unable to load aircraft.");
+
+        const data = await response.json();
+        setAircrafts(Array.isArray(data) ? data : data.aircrafts || []);
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message || "Unable to load aircraft.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAircrafts();
+    return () => controller.abort();
+  }, []);
 
   return (
     <Box className="ag-page">
       <AppBarNav gender={gender} />
 
       <Container maxWidth="lg" className="ag-body">
+        {error && <p role="alert" className="dashboard-error">{error}</p>}
+
         <Box className="ag-page-head">
           <Box>
             <h1 className="ag-page-title">
@@ -73,10 +109,10 @@ export default function Dashboard({ aircrafts = [] }) {
                 <Box className="ag-head-panel-value">
                   <ShieldOutlinedIcon className="ag-detail-icon" />
                   <p className="ag-detail-value">
-                    {aircrafts.length ? `${aircrafts.length} active policies` : "0 active policies"}
+                    {aircrafts.filter((aircraft) => aircraft.status === "Active").length} active policies
                   </p>
                 </Box>
-                <Chip
+                  <Chip
                   label={aircrafts.length ? "In progress" : "Not started"}
                   size="small"
                   className={aircrafts.length ? "ag-chip-positive" : "ag-chip-muted"}
@@ -140,23 +176,27 @@ export default function Dashboard({ aircrafts = [] }) {
                 <Table className="ag-table">
 
                   <TableBody>
-                    {aircrafts.map((aircraft) => (
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="ag-empty-cell">Loading aircraft...</TableCell>
+                      </TableRow>
+                    ) : aircrafts.map((aircraft) => (
                       <TableRow key={aircraft.id}>
                         <TableCell>
                           <Box
                             component="img"
-                            src={AIRCRAFT_IMAGES[aircraft.picture] || AIRCRAFT_IMAGES.single}
-                            alt={`${aircraft.aircraftType} aircraft`}
+                            src={AIRCRAFT_IMAGES[aircraft.aircraft_type] || AIRCRAFT_IMAGES.single}
+                            alt={`${aircraft.aircraft_type || "Aircraft"} aircraft`}
                             className="ag-aircraft-table-image"
                           />
                         </TableCell>
-                        <TableCell>Aircraft: {aircraft.aircraftType}</TableCell>
-                        <TableCell>Home Base: {aircraft.homeBase}</TableCell>
-                        <TableCell>Usage: {aircraft.flightPurpose}</TableCell>
-                        <TableCell>Coverage Tier: {aircraft.coverageTier}</TableCell>
+                        <TableCell>Aircraft: {aircraft.aircraft_type}</TableCell>
+                        <TableCell>Home Base: {aircraft.home_base}</TableCell>
+                        <TableCell>Usage: {aircraft.flight_purpose}</TableCell>
+                        <TableCell>Coverage Tier: {aircraft.selected_tier}</TableCell>
                       </TableRow>
                     ))}
-                    {aircrafts.length === 0 && (
+                    {!loading && !error && aircrafts.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="ag-empty-cell">No aircraft registered yet.</TableCell>
                       </TableRow>

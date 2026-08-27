@@ -13,53 +13,8 @@ import SecurityIcon from "@mui/icons-material/Security";
 import "./PlanComparison.css";
 import AppBarNav from "../AppBarNav";
 
-const PLANS = [
-  {
-    id: "standard",
-    name: "Standard",
-    shieldCount: 1,
-    price: "R1,450",
-    period: "/ year per aircraft",
-    description: "Perfect for single piston aircraft operators needing basic liability limits & hull coverage.",
-    features: [
-      "R1M Standard Liability Protection",
-      "R100k per passenger sublimit restriction",
-      "Full ground/transit risk inclusion",
-      "Digital credentialing log vaults",
-      "AIG Aerospace co-secured backing",
-    ],
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    shieldCount: 2,
-    price: "R3,240",
-    period: "/ year per aircraft",
-    description: "Comprehensive protection for multi-engine turboprops and private light jet fleets.",
-    features: [
-      "R2M Professional Liability (No passenger cap)",
-      "Premium Hull Replacement coverage options",
-      "Global real-time transit transponder logs",
-      "Manual underwriter reviews included",
-      "Active fleet compliance profiles",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    shieldCount: 3,
-    price: "R5,999",
-    period: "/ year per aircraft",
-    description: "Premium comprehensive coverage with priority support and maximum liability limits for demanding operations.",
-    features: [
-      "R5M Premium Liability Protection",
-      "Priority claims handling & 24/7 support",
-      "All-risk hull & equipment coverage included",
-      "Unlimited passenger & crew liability",
-      "Executive risk team & loss prevention services",
-    ],
-  },
-];
+import { useState } from "react";
+
 
 const FOOTER_COLUMNS = [
   {
@@ -77,6 +32,27 @@ const FOOTER_COLUMNS = [
 ];
 
 export default function CurrentPlan() {
+
+  const token = localStorage.getItem("token");
+  const [plans, setPlans] =useState([]);
+
+  const getPlans = () =>{
+
+      fetch(`${API_URL}/plans`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setPlans(data));
+  }
+
+  useEffect(() => {
+    console.log("Mounting is Done");
+    getPlans();
+  }, []);
+
   return (
     <Box className="ag-page">
       <AppBarNav />
@@ -96,7 +72,7 @@ export default function CurrentPlan() {
 
 
             <Grid container spacing={3} sx={{ marginBottom: 8 }}>
-                {PLANS.map((plan) => (
+                {plans.map((plan) => (
                 <Grid key={plan.id} size={{ xs: 12, md: 4 }}>
                     <Card
                     variant="outlined"
