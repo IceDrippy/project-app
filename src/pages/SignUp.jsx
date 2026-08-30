@@ -17,11 +17,11 @@ import "./SignUp.css";
 import { API_URL } from "../global";
 
 const RegistrySchema = object({
-    fullname: string().required("Full Name is required"),
-    email : string().required(),
-    gender: string().required("Gender is required"),
-    username: string().required("Username is required"),
-    password: string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  fullname: string().required("Full Name is required"),
+  email: string().email("Please enter a valid email address").required("Email is required"),
+  gender: string().required("Gender is required"),
+  username: string().required("Username is required"),
+  password: string().min(6, "Password must be at least 6 characters").required("Password is required"),
 });
 
 const STEPS = [
@@ -44,22 +44,28 @@ export function SignUp() {
       password: "",
     },
     validationSchema: RegistrySchema,
-    onSubmit: (formValues) => {
+    onSubmit: async (formValues) => {
       setError("");
       setLoading(true);
-      fetch(`${API_URL}/auth/signup`,{
-        method : "POST",
-        body: JSON.stringify(formValues),
-        headers:{
-          "Content-Type":"application/json"
+      try {
+        const res = await fetch(`${API_URL}/auth/signup`, {
+          method: "POST",
+          body: JSON.stringify(formValues),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.message || data.error || "Failed to create account.");
         }
-      })
-      .then((res) => res.ok ? res.json():Promise.reject("Access Denied"))
-      .then(() => navigate ("/login"))
-      .catch((err) => setError(err))
-      .finally(() => setLoading(false))
-    }
-
+        navigate("/login");
+      } catch (err) {
+        setError(err.message || "Failed to create account.");
+      } finally {
+        setLoading(false);
+      }
+    },
   });
 
   return (
@@ -116,8 +122,8 @@ export function SignUp() {
               placeholder="John Doe"
               variant="outlined"
               fullWidth
-              error={Boolean(touched.fullName && errors.fullName)}
-              helperText={touched.fullName && errors.fullName ? errors.fullName : null}
+              error={Boolean(touched.fullname && errors.fullname)}
+              helperText={touched.fullname && errors.fullname ? errors.fullname : null}
             />
 
             <TextField
@@ -135,6 +141,7 @@ export function SignUp() {
 
             <TextField
               label="Email"
+              type="email"
               value={values.email}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -148,6 +155,7 @@ export function SignUp() {
 
             <TextField
               label="Password"
+              type="password"
               value={values.password}
               onChange={handleChange}
               onBlur={handleBlur}

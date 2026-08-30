@@ -1,24 +1,28 @@
+import { useCallback, useState } from "react";
 import { Routes, Route } from "react-router-dom";
+
+// Registration Wizard Components
 import { AircraftID } from "./aircraft-reg/AircraftType";
 import { UseCase } from "./aircraft-reg/UseCase";
 import { ManualSignUp } from "./aircraft-reg/ManualAircraft-Search";
 import { Pilot } from "./aircraft-reg/Pilot";
 import { Coverage } from "./aircraft-reg/Coverage";
 import { Quote } from "./aircraft-reg/Quote";
+import { Payment } from "./aircraft-reg/Payment";
+
+// Pages
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Claims from "./pages/Claims";
-import { Login } from "./pages/Login";
-import { useState } from "react";
-import { SignUp } from "./pages/SignUp";
-import Plans from "./pages/Plans";
-import Aircrafts from "./pages/Aircrafts";
 import FileClaim from "./pages/FileClaim";
-import MyPolicies from "./pages/MyPolicies";
-import CurrentPlan from "./pages/PlanComparison";
-import Admin from "./pages/Admin";
 import ClaimReview from "./pages/ClaimReview";
-import { Payment } from "./aircraft-reg/Payment";
+import Aircrafts from "./pages/Aircrafts";
+import Plans from "./pages/Plans";
+import CurrentPlan from "./pages/PlanComparison";
+import MyPolicies from "./pages/MyPolicies";
+import Admin from "./pages/Admin";
+import { Login } from "./pages/Login";
+import { SignUp } from "./pages/SignUp";
 
 let referenceCounter = 1000;
 const sequence = () => `2026-${String(++referenceCounter)}`;
@@ -50,23 +54,22 @@ export default function App() {
   const [reviewLog, setReviewLog] = useState([]);
   const [registrationData, setRegistrationData] = useState(defaultRegistrationData);
 
-  const resetRegistrationFlow = () => {
+  const resetRegistrationFlow = useCallback(() => {
     setCompleted([]);
     setRegistrationData(defaultRegistrationData);
-  };
+  }, []);
 
-  const updateRegistrationData = (updates) => {
+  const updateRegistrationData = useCallback((updates) => {
     setRegistrationData((current) => ({ ...current, ...updates }));
-  };
+  }, []);
 
-  const addCompletedStep = (completedStep) => {
+  const addCompletedStep = useCallback((completedStep) => {
     setCompleted((steps) =>
       steps.includes(completedStep) ? steps : [...steps, completedStep]
     );
-  };
+  }, []);
 
-
-  const addAircraft = (aircraft) => {
+  const addAircraft = useCallback((aircraft) => {
     const reference = sequence();
     const pilot = localStorage.getItem("fullname") || "Registered pilot";
 
@@ -105,9 +108,9 @@ export default function App() {
         submittedAt: Date.now(),
       },
     ]);
-  };
+  }, [registrationData.pilotCert, registrationData.medicalStatus]);
 
-  const resolveQueueItem = ({ source, id, status, entry }) => {
+  const resolveQueueItem = useCallback(({ source, id, status, entry }) => {
     const apply = (list) =>
       list.map((item) => (item.id === id ? { ...item, status } : item));
 
@@ -116,9 +119,9 @@ export default function App() {
     else setReviewItems(apply);
 
     setReviewLog((current) => [entry, ...current]);
-  };
+  }, []);
 
-  const clearReviewLog = () => setReviewLog([]);
+  const clearReviewLog = useCallback(() => setReviewLog([]), []);
 
   return (
     <main className="App">
@@ -129,12 +132,12 @@ export default function App() {
         <Route
           path="/aircraft"
           element={
-              <AircraftID
-                compSteps={completed}
-                addCompletedStep={addCompletedStep}
-                aircraftData={registrationData}
-                updateRegistrationData={updateRegistrationData}
-              />
+            <AircraftID
+              compSteps={completed}
+              addCompletedStep={addCompletedStep}
+              aircraftData={registrationData}
+              updateRegistrationData={updateRegistrationData}
+            />
           }
         />
         <Route
@@ -192,19 +195,18 @@ export default function App() {
             />
           }
         />
-
         <Route
           path="/payment"
           element={
             <Payment
               compSteps={completed}
-              addCompletedStep={addCompletedStep}
               registrationData={registrationData}
               addAircraft={addAircraft}
               resetRegistrationFlow={resetRegistrationFlow}
             />
           }
         />
+
         <Route path="/dashboard" element={<Dashboard />} />
         <Route
           path="/admin"

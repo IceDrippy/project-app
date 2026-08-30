@@ -8,7 +8,7 @@ import SecurityIcon from "@mui/icons-material/Security";
 import SpeedIcon from "@mui/icons-material/Speed";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import { useFormik } from "formik";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { object, string } from "yup";
 import "./Login.css";
@@ -45,28 +45,37 @@ export function Login() {
         setError("");
         setLoading(true);
 
-        fetch(`${API_URL}/auth/login`,{
-          method : 'POST',
-          body : JSON.stringify(formValues),
-          headers:{
-            "Content-Type":"application/json"
+        try {
+          const res = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            body: JSON.stringify(formValues),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || errData.error || "Access Denied");
           }
-        })
 
-        .then((res) => res.ok ? res.json() : Promise.reject("Access Denied"))
-        .then((data) =>{
-          localStorage.setItem("role" , data.role);
-          localStorage.setItem("token" ,data.token);
-          localStorage.setItem( "fullname" , data.fullname);
+          const data = await res.json();
+          localStorage.setItem("role", data.role || "");
+          localStorage.setItem("token", data.token || "");
+          localStorage.setItem("fullname", data.fullname || formValues.username);
           localStorage.setItem("isAuthenticated", "true");
-        })
-        .then(() => navigate("/dashboard"))
-        .catch((err) => setError(err))
-        .finally(() => setLoading(false))
 
-
-        //   localStorage.setItem("fullname", formValues.username);
-        //   localStorage.setItem("isAuthenticated", "true");
+          const isAdmin = String(data.role || "").toUpperCase() === "ADMIN";
+          if (isAdmin) {
+            navigate("/admin");
+          } else {
+            navigate("/dashboard");
+          }
+        } catch (err) {
+          setError(err.message || "Access Denied");
+        } finally {
+          setLoading(false);
+        }
       },
     });
 
@@ -76,7 +85,7 @@ export function Login() {
 
   return (
     <Box className="login-page">
-      {/* Left branding panel */}
+
       <Box className="login-brand-panel">
         <Box className="login-brand-logo">
           <FlightIcon sx={{ fontSize: 40, color: "#ea580c" }} />

@@ -55,6 +55,7 @@ export default function FileClaim() {
   });
 
   const [policies, setPolicies] = useState([]);
+  const [aircraftList, setAircraftList] = useState([]);
   const [supportingDocuments, setSupportingDocuments] = useState([]);
   const [documentError, setDocumentError] = useState("");
   const documentsRef = useRef(supportingDocuments);
@@ -70,19 +71,26 @@ export default function FileClaim() {
     const controller = new AbortController();
     const token = localStorage.getItem("token");
 
-    const loadPolicies = async () => {
+    const loadData = async () => {
+      const headers = {
+        Authorization: token ? `Bearer ${token}` : "",
+      };
+
       try {
-        const response = await fetch(`${API_URL}/policies`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-          signal: controller.signal,
-        });
+        const [policiesRes, aircraftRes] = await Promise.allSettled([
+          fetch(`${API_URL}/policies`, { headers, signal: controller.signal }),
+          fetch(`${API_URL}/aircrafts`, { headers, signal: controller.signal }),
+        ]);
 
-        if (!response.ok) throw new Error("Unable to load policies.");
+        if (policiesRes.status === "fulfilled" && policiesRes.value.ok) {
+          const data = await policiesRes.value.json();
+          setPolicies(Array.isArray(data) ? data : data.policies || []);
+        }
 
-        const data = await response.json();
-        setPolicies(Array.isArray(data) ? data : data.policies || []);
+        if (aircraftRes.status === "fulfilled" && aircraftRes.value.ok) {
+          const data = await aircraftRes.value.json();
+          setAircraftList(Array.isArray(data) ? data : data.aircrafts || []);
+        }
       } catch (requestError) {
         if (requestError.name !== "AbortError") {
           setError(requestError.message || "Unable to load policies.");
@@ -90,7 +98,7 @@ export default function FileClaim() {
       }
     };
 
-    loadPolicies();
+    loadData();
     return () => controller.abort();
   }, []);
 
@@ -99,6 +107,7 @@ export default function FileClaim() {
     setClaim((current) => ({ ...current, [name]: value }));
   };
 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -106,34 +115,118 @@ export default function FileClaim() {
 
     const token = localStorage.getItem("token");
 
+    let selectedPolicyId = null;
+    let selectedAircraftId = null;
+
+    const matchedPolicy = policies.find(
+      (p) => String(p.id) === String(claim.aircraft)
+    );
+
+    if (matchedPolicy) {
+      selectedPolicyId = matchedPolicy.id;
+      selectedAircraftId =
+        matchedPolicy.aircraft_id ||
+        matchedPolicy.aircraft?.id ||
+        matchedPolicy.aircraftId ||
+        null;
+    }
+
+    if (!selectedAircraftId) {
+      const matchedAircraft = aircraftList.find(
+        (a) => String(a.id) === String(claim.aircraft)
+      );
+      if (matchedAircraft) {
+        selectedAircraftId = matchedAircraft.id;
+      }
+    }
+
+    if (!selectedPolicyId && selectedAircraftId) {
+      const policyForAircraft = policies.find(
+        (p) =>
+          String(p.aircraft_id ?? p.aircraft?.id ?? p.aircraftId) ===
+          String(selectedAircraftId)
+      );
+      if (policyForAircraft) {
+        selectedPolicyId = policyForAircraft.id;
+      }
+    }
+
+    if (!selectedAircraftId && policies.length === 0 && aircraftList.length === 0) {
+      selectedAircraftId = claim.aircraft;
+    }
+
+    if (!selectedPolicyId) {
+      setError(
+        policies.length === 0
+          ? "No active policy found. Activate a policy for this aircraft before filing a claim."
+          : "Unable to determine the policy for this aircraft. Please select a valid policy."
+      );
+      setLoading(false);
+      return;
+    }
+
+    if (!selectedAircraftId) {
+      setError(
+        "Unable to determine the aircraft for this policy. Please contact support."
+      );
+      setLoading(false);
+      return;
+    }
+
+    const payload = {
+      policy_id: selectedPolicyId,
+      aircraft_id: selectedAircraftId,
+      claim_reference: `CLM-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+      incident_date: claim.incidentDate,
+      incident_description: `${claim.incidentType}: ${claim.description}`,
+      incident_location: claim.incidentLocation,
+      claim_amount: Number(claim.amount),
+    };
+
     try {
-      const response = await fetch(`${API_URL}/claims/policy/${claim.aircraft}`, {
+      let response = await fetch(`${API_URL}/claims`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          incident_date: claim.incidentDate,
-          incident_description: claim.description,
-          incident_location: claim.incidentLocation,
-          claim_amount: Number(claim.amount),
-        }),
+        body: JSON.stringify(payload),
       });
 
+      if (!response.ok && response.status === 404 && selectedPolicyId) {
+        response = await fetch(`${API_URL}/claims/policy/${selectedPolicyId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || "Unable to submit claim.");
+
+      if (!response.ok) {
+        const fieldErrors = Array.isArray(data.fields)
+          ? ` (missing: ${data.fields.join(", ")})`
+          : "";
+        throw new Error(
+          `${data.message || data.error || "Unable to submit claim."}${fieldErrors}`
+        );
+      }
 
       const savedClaim = data.claim || data;
-        setClaimReference(savedClaim.claim_reference || "Claim submitted");
-        addClaim?.(savedClaim);
-        setSubmitted(true);
+      setClaimReference(
+        savedClaim.claim_reference || savedClaim.reference || "Claim submitted"
+      );
+      setSubmitted(true);
     } catch (requestError) {
       setError(requestError.message || "Unable to submit claim.");
     } finally {
       setLoading(false);
     }
   };
+
   
   const handleDocumentChange = (event) => {
     const selectedFiles = Array.from(event.target.files || []);
@@ -233,7 +326,7 @@ export default function FileClaim() {
           <Card variant="outlined" className="file-claim-card">
             <CardContent>
               <Box component="form" onSubmit={handleSubmit} className="file-claim-form">
-                {/* Section: Aircraft & Incident Info */}
+
                 <Box className="file-claim-section">
                   <p className="file-claim-section-title">
                     <DescriptionOutlinedIcon sx={{ fontSize: 20, mr: 1, verticalAlign: "middle" }} />
@@ -241,7 +334,7 @@ export default function FileClaim() {
                   </p>
 
                   <Box className="file-claim-grid">
-                    {policies.length > 0 ? (
+                    {policies.length > 0 || aircraftList.length > 0 ? (
                       <FormControl fullWidth required>
                         <InputLabel>Policy / Aircraft</InputLabel>
                         <Select
@@ -250,14 +343,23 @@ export default function FileClaim() {
                           onChange={handleChange}
                           label="Policy / Aircraft"
                         >
-                          {policies.map((policy) => {
-                            const aircraft = policy.aircraft || {};
-                            return (
-                              <MenuItem key={policy.id} value={policy.id}>
-                                {aircraft.name || `${aircraft.make || ""} ${aircraft.model || ""}`.trim() || "Unnamed aircraft"} — {aircraft.serial_number || "N/A"}
-                              </MenuItem>
-                            );
-                          })}
+                          {policies.length > 0
+                            ? policies.map((policy) => {
+                                const aircraft = policy.aircraft || {};
+                                return (
+                                  <MenuItem key={policy.id} value={policy.id}>
+                                    Policy #{policy.policy_number || policy.id} —{" "}
+                                    {aircraft.name || `${aircraft.make || ""} ${aircraft.model || ""}`.trim() || "Aircraft"}{" "}
+                                    ({aircraft.serial_number || "N/A"})
+                                  </MenuItem>
+                                );
+                              })
+                            : aircraftList.map((aircraft) => (
+                                <MenuItem key={aircraft.id} value={aircraft.id}>
+                                  {aircraft.name || `${aircraft.make || ""} ${aircraft.model || ""}`.trim() || aircraft.aircraft_type}{" "}
+                                  — S/N: {aircraft.serial_number || "N/A"}
+                                </MenuItem>
+                              ))}
                         </Select>
                       </FormControl>
                     ) : (
@@ -268,8 +370,8 @@ export default function FileClaim() {
                         onChange={handleChange}
                         required
                         fullWidth
-                        placeholder="N12345"
-                        helperText="Create a policy to select an aircraft"
+                        placeholder="e.g. Serial or Registration ID"
+                        helperText="Select or enter your aircraft ID"
                       />
                     )}
                     <TextField
@@ -330,7 +432,6 @@ export default function FileClaim() {
 
                 <Divider sx={{ my: 1 }} />
 
-                {/* Section: Description */}
                 <Box className="file-claim-section">
                   <p className="file-claim-section-title">Incident Details</p>
                   <TextField
@@ -349,7 +450,6 @@ export default function FileClaim() {
 
                 <Divider sx={{ my: 1 }} />
 
-                {/* Section: Supporting Documents */}
                 <Box className="file-claim-section">
                   <Box className="supporting-documents">
                     <Box className="supporting-documents-header">
@@ -429,7 +529,6 @@ export default function FileClaim() {
                   </Box>
                 </Box>
 
-                {/* Actions */}
                 <Box className="file-claim-actions">
                   <Button variant="outlined" type="button" onClick={() => navigate("/claims")}>
                     Cancel

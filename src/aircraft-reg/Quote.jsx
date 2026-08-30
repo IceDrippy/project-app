@@ -24,14 +24,20 @@ export function Quote({ compSteps, addCompletedStep, registrationData , updateRe
   ];
 
 
+  const totalHours =
+    registrationData.total_flight_hours?.total ??
+    registrationData.total_flight_hours ??
+    registrationData.hours?.total ??
+    0;
+
   const quoteSummary = buildQuoteSummary({
-    hullValue: registrationData.hullValue,
-    selectedTier: registrationData.selectedTier ,
-    flightPurpose: registrationData.flight_purpose, 
-    storage: registrationData.storage_location ,
-    totalHours: Number(registrationData.hours?.total) ,
-    certLevel: registrationData.pilotCert ,
-    medicalStatus: registrationData.medicalStatus,
+    hullValue: registrationData.hull_value || registrationData.hullValue,
+    selectedTier: registrationData.selected_tier || registrationData.selectedTier,
+    flightPurpose: registrationData.flight_purpose || registrationData.flightPurpose, 
+    storage: registrationData.storage_location || registrationData.storage,
+    totalHours: Number(totalHours) || 0,
+    certLevel: registrationData.pilot_certification || registrationData.pilotCert,
+    medicalStatus: registrationData.medical_status || registrationData.medicalStatus,
     deductible: 2500,
   });
 
@@ -229,7 +235,9 @@ export function Quote({ compSteps, addCompletedStep, registrationData , updateRe
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#64748b" }}>N-Number</Typography>
-                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>{registrationData.serialNum || "Not provided"}</Typography>
+                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>
+                  {registrationData.serial_number || registrationData.serialNum || "Not provided"}
+                </Typography>
               </Box>
             </Stack>
           </Card>
@@ -252,15 +260,21 @@ export function Quote({ compSteps, addCompletedStep, registrationData , updateRe
             <Stack spacing={1}>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#64748b" }}>Certificate</Typography>
-                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>{registrationData.pilotCert || "PPL License"}</Typography>
+                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>
+                  {registrationData.pilot_certification || registrationData.pilotCert || "PPL License"}
+                </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#64748b" }}>Medical</Typography>
-                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>{registrationData.medicalStatus || "First Class - Active"}</Typography>
+                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>
+                  {registrationData.medical_status || registrationData.medicalStatus || "First Class - Active"}
+                </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#64748b" }}>Total Hours</Typography>
-                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>{Number(registrationData.hours?.total) || 0} hrs</Typography>
+                <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>
+                  {Number(totalHours) || 0} hrs
+                </Typography>
               </Box>
             </Stack>
           </Card>
@@ -307,8 +321,7 @@ export function Quote({ compSteps, addCompletedStep, registrationData , updateRe
                 }
 
                 const aircraftResponse = await response.json();
-                const aircraft = aircraftResponse.aircraft || aircraftResponse;
-                
+                const _aircraft = aircraftResponse.aircraft || aircraftResponse;
 
                 updateRegistrationData?.({ quoteSummary });
                 resetRegistrationFlow?.();

@@ -17,7 +17,12 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { buildQuoteSummary } from "./quoteCalculator";
 import "./WizardPage.css";
 
-export function Payment({ compSteps = [], addCompletedStep, registrationData = {}, addAircraft, resetRegistrationFlow }) {
+export function Payment({
+  compSteps = [],
+  registrationData = {},
+  addAircraft,
+  resetRegistrationFlow,
+}) {
   const navigate = useNavigate();
   const label = { slotProps: { input: { "aria-label": "Checkbox demo", readOnly: true } } };
 
@@ -92,7 +97,7 @@ export function Payment({ compSteps = [], addCompletedStep, registrationData = {
       });
     }
 
-
+    resetRegistrationFlow?.();
     navigate("/dashboard");
   };
 

@@ -46,13 +46,30 @@ const COVERAGE_TIERS = {
   },
 };
 
+const STATUS_CONFIG = {
+  Approved: { label: "Approved / Active", bg: "#dcfce7", color: "#16a34a" },
+  Active: { label: "Active", bg: "#dcfce7", color: "#16a34a" },
+  Pending: { label: "Pending Review", bg: "#fef3c7", color: "#b45309" },
+  "In Review": { label: "In Review", bg: "#dbeafe", color: "#1d4ed8" },
+  Denied: { label: "Denied", bg: "#fee2e2", color: "#dc2626" },
+};
+
 const SUMMARY_CARDS = [
   {
     label: "ACTIVE POLICIES",
     icon: <ShieldIcon />,
     color: "#22c55e",
-    getValue: (aircrafts) => aircrafts.length,
-    suffix: "aircraft covered",
+    getValue: (aircrafts) =>
+      aircrafts.filter((a) => a.status === "Active" || a.status === "Approved").length,
+    suffix: "approved policies",
+  },
+  {
+    label: "PENDING UNDERWRITING",
+    icon: <SecurityIcon />,
+    color: "#ea580c",
+    getValue: (aircrafts) =>
+      aircrafts.filter((a) => !a.status || a.status === "Pending" || a.status === "In Review").length,
+    suffix: "awaiting review",
   },
   {
     label: "TOTAL HULL VALUE",
@@ -60,14 +77,7 @@ const SUMMARY_CARDS = [
     color: "#0284c7",
     getValue: (aircrafts) =>
       `R${aircrafts.reduce((sum, aircraft) => sum + Number(aircraft.hull_value || 0), 0).toLocaleString()}`,
-    suffix: "insured value",
-  },
-  {
-    label: "COVERAGE STATUS",
-    icon: <SecurityIcon />,
-    color: "#7c3aed",
-    getValue: () => "Active",
-    suffix: "all policies current",
+    suffix: "insured fleet valuation",
   },
 ];
 
@@ -106,62 +116,6 @@ export default function MyPolicies() {
     loadAircrafts();
     return () => controller.abort();
   }, []);
-
-  const createPolicy = async (aircraft) => {
-    const token = localStorage.getItem("token");
-    const selectedTier = aircraft.selected_tier;
-
-    if (!selectedTier) {
-      setError("This aircraft does not have a coverage tier.");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/policies/aircraft/${aircraft.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          selected_tier: selectedTier,
-          hull_value: aircraft.hull_value,
-          flight_purpose: aircraft.flight_purpose,
-          storage: aircraft.storage_location,
-          cert_level: aircraft.pilot_certification,
-          medical_status: aircraft.medical_status,
-          deductible: 2500,
-        }),
-      });
-
-      if (!response.ok) {
-        const responseData = await response.json().catch(() => ({}));
-        throw new Error(responseData.message || "Policy was not created.");
-      }
-
-      const responseData = await response.json();
-      const policy = responseData.policy || responseData;
-      setAircrafts((currentAircrafts) =>
-        currentAircrafts.map((currentAircraft) =>
-          currentAircraft.id === aircraft.id
-            ? {
-                ...currentAircraft,
-                status: policy.status || "Active",
-                policy_number: policy.policy_number,
-                premium: policy.premium,
-              }
-            : currentAircraft,
-        ),
-      );
-      setError("");
-    } catch (requestError) {
-      setError(requestError.message || "Policy was not created.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Box className="ag-page">
@@ -261,6 +215,13 @@ export default function MyPolicies() {
                 <TableBody>
                   {aircrafts.map((aircraft) => {
                     const tier = COVERAGE_TIERS[aircraft.selected_tier] || COVERAGE_TIERS.standard;
+                    const statusKey = aircraft.status || "Pending";
+                    const statusCfg = STATUS_CONFIG[statusKey] || {
+                      label: statusKey,
+                      bg: "#f1f5f9",
+                      color: "#475569",
+                    };
+
                     return (
                       <TableRow key={aircraft.id} sx={{ "&:hover": { bgcolor: "#f8fafc" } }}>
                         <TableCell>
@@ -308,15 +269,15 @@ export default function MyPolicies() {
                         </TableCell>
                         <TableCell>
                           <Chip
-                            icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                            label={aircraft.status || "Pending"}
+                            icon={statusKey === "Active" || statusKey === "Approved" ? <CheckCircleIcon sx={{ fontSize: 16 }} /> : undefined}
+                            label={statusCfg.label}
                             size="small"
                             sx={{
-                              bgcolor: "#dcfce7",
-                              color: "#16a34a",
+                              bgcolor: statusCfg.bg,
+                              color: statusCfg.color,
                               fontWeight: 600,
                               fontSize: "12px",
-                              "& .MuiChip-icon": { color: "#16a34a" },
+                              "& .MuiChip-icon": { color: statusCfg.color },
                             }}
                           />
                         </TableCell>
@@ -403,19 +364,6 @@ export default function MyPolicies() {
                             </p>
                           </Box>
                         </Box>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          disabled={loading}
-                          onClick={() => createPolicy(aircraft)}
-                          sx={{
-                            mt: 2,
-                            bgcolor: "#ea580c !important",
-                            "&:hover": { bgcolor: "#c2410c !important" },
-                          }}
-                        >
-                          {loading ? "Creating Policy..." : "Create Policy"}
-                        </Button>
                       </CardContent>
                     </Card>
                   );

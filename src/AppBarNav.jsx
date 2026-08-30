@@ -1,14 +1,12 @@
 import { AppBar, Avatar, Badge, Box, Divider, ListItemIcon, Menu, MenuItem, Toolbar, Typography } from "@mui/material";
-import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
-import PersonIcon from "@mui/icons-material/Person";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import femaleLogo from "./assets/female-logo.png";
 import maleLogo from "./assets/male-logo.avif";
 import "./AppBarNav.css";
 
-const NAV_LINKS = ["Dashboard", "Plans", "Claims", "My Policies", "Aircraft", "Admin"];
+const NAV_LINKS = ["Dashboard", "Plans", "Claims", "My Policies", "Aircraft"];
 
 const NAV_ROUTES = {
   Dashboard: "/dashboard",
@@ -16,7 +14,6 @@ const NAV_ROUTES = {
   Claims: "/claims",
   "My Policies": "/my-policies",
   Aircraft: "/aircrafts",
-  Admin: "/admin",
 };
 
 export default function AppBarNav({ gender = "" }) {
@@ -24,6 +21,8 @@ export default function AppBarNav({ gender = "" }) {
   const { pathname } = useLocation();
   const storedGender = localStorage.getItem("selectedGender") || "";
   const storedName = localStorage.getItem("fullname") || "Captain";
+  const userRole = localStorage.getItem("role") || "";
+  const isAdmin = String(userRole).toUpperCase() === "ADMIN";
   const currentGender = gender || storedGender;
   
   const [anchorEl, setAnchorEl] = useState(null);
@@ -38,38 +37,41 @@ export default function AppBarNav({ gender = "" }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("fullname");
-    localStorage.removeItem("selectedGender");
+    localStorage.clear();
     handleClose();
     navigate("/");
   };
 
-
   return (
     <AppBar position="sticky" color="inherit" elevation={0} className="ag-appbar">
       <Toolbar className="ag-toolbar">
-        <Box className="ag-brand" onClick={() => navigate("/dashboard")}>
+        <Box className="ag-brand" onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}>
           <Box className="ag-logo-mark" />
           <p className="ag-brand-name">AVIAGUARD</p>
         </Box>
 
-        <Box className="ag-nav">
-          {NAV_LINKS.map((label) => (
-            <p key={label} className={`ag-nav-link ${pathname === NAV_ROUTES[label] ? "ag-nav-link--active" : ""}`} onClick={() => navigate(NAV_ROUTES[label])}>
-              {label}
-            </p>
-          ))}
-        </Box>
+        {!isAdmin && (
+          <Box className="ag-nav">
+            {NAV_LINKS.map((label) => (
+              <p
+                key={label}
+                className={`ag-nav-link ${pathname === NAV_ROUTES[label] ? "ag-nav-link--active" : ""}`}
+                onClick={() => navigate(NAV_ROUTES[label])}
+              >
+                {label}
+              </p>
+            ))}
+          </Box>
+        )}
 
         <Badge
           color="error"
           overlap="circular"
           onClick={handleAvatarClick}
-          sx={{ cursor: "pointer" }}
+          sx={{ cursor: "pointer", ml: isAdmin ? "auto" : undefined }}
         >
           <Avatar
-            alt="Captain"
+            alt="User Avatar"
             src={currentGender === "female" ? femaleLogo : maleLogo}
             className="ag-avatar"
           />
@@ -109,7 +111,9 @@ export default function AppBarNav({ gender = "" }) {
         >
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>{storedName}</Typography>
-            <Typography sx={{ fontSize: 13, color: "#64748b" }}>Pilot Account</Typography>
+            <Typography sx={{ fontSize: 13, color: "#64748b" }}>
+              {isAdmin ? "Administrator Account" : "Pilot Account"}
+            </Typography>
           </Box>
           <Divider />
 

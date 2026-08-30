@@ -17,7 +17,7 @@ import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import NavigationIcon from "@mui/icons-material/Navigation";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppBarNav from "../AppBarNav";
 import SingleEngineImage from "../assets/single-engine.jpg";
 import TwinEngineImage from "../assets/twin-engine.jpg";
@@ -109,13 +109,23 @@ export default function Dashboard() {
                 <Box className="ag-head-panel-value">
                   <ShieldOutlinedIcon className="ag-detail-icon" />
                   <p className="ag-detail-value">
-                    {aircrafts.filter((aircraft) => aircraft.status === "Active").length} active policies
+                    {aircrafts.filter((aircraft) => aircraft.status === "Active" || aircraft.status === "Approved").length} active policies
                   </p>
                 </Box>
-                  <Chip
-                  label={aircrafts.length ? "In progress" : "Not started"}
+                <Chip
+                  label={
+                    aircrafts.some((a) => a.status === "Active" || a.status === "Approved")
+                      ? "Protected"
+                      : aircrafts.length
+                      ? "Underwriting in progress"
+                      : "Not started"
+                  }
                   size="small"
-                  className={aircrafts.length ? "ag-chip-positive" : "ag-chip-muted"}
+                  className={
+                    aircrafts.some((a) => a.status === "Active" || a.status === "Approved")
+                      ? "ag-chip-positive"
+                      : "ag-chip-muted"
+                  }
                 />
               </CardContent>
             </Card>
@@ -180,22 +190,46 @@ export default function Dashboard() {
                       <TableRow>
                         <TableCell colSpan={5} className="ag-empty-cell">Loading aircraft...</TableCell>
                       </TableRow>
-                    ) : aircrafts.map((aircraft) => (
-                      <TableRow key={aircraft.id}>
-                        <TableCell>
-                          <Box
-                            component="img"
-                            src={AIRCRAFT_IMAGES[aircraft.aircraft_type] || AIRCRAFT_IMAGES.single}
-                            alt={`${aircraft.aircraft_type || "Aircraft"} aircraft`}
-                            className="ag-aircraft-table-image"
-                          />
-                        </TableCell>
-                        <TableCell>Aircraft: {aircraft.aircraft_type}</TableCell>
-                        <TableCell>Home Base: {aircraft.home_base}</TableCell>
-                        <TableCell>Usage: {aircraft.flight_purpose}</TableCell>
-                        <TableCell>Coverage Tier: {aircraft.selected_tier}</TableCell>
-                      </TableRow>
-                    ))}
+                    ) : aircrafts.map((aircraft) => {
+                      const status = aircraft.status || "Pending";
+                      const isActive = status === "Active" || status === "Approved";
+                      const isDenied = status === "Denied";
+
+                      return (
+                        <TableRow key={aircraft.id}>
+                          <TableCell>
+                            <Box
+                              component="img"
+                              src={AIRCRAFT_IMAGES[aircraft.aircraft_type] || AIRCRAFT_IMAGES.single}
+                              alt={`${aircraft.aircraft_type || "Aircraft"} aircraft`}
+                              className="ag-aircraft-table-image"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <strong>{aircraft.aircraft_type}</strong>
+                            <Box sx={{ fontSize: 12, color: "#64748b" }}>
+                              {aircraft.serial_number ? `S/N: ${aircraft.serial_number}` : ""}
+                            </Box>
+                          </TableCell>
+                          <TableCell>Home Base: {aircraft.home_base || "—"}</TableCell>
+                          <TableCell>Usage: {aircraft.flight_purpose || "—"}</TableCell>
+                          <TableCell>Tier: {aircraft.selected_tier || "Standard"}</TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              label={status}
+                              className={
+                                isActive
+                                  ? "ag-chip-positive"
+                                  : isDenied
+                                  ? "ag-chip-urgent"
+                                  : "ag-chip-under-review"
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {!loading && !error && aircrafts.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="ag-empty-cell">No aircraft registered yet.</TableCell>

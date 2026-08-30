@@ -1,92 +1,50 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   FormControl,
   Grid,
+  IconButton,
   LinearProgress,
   MenuItem,
   Select,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
-import PolicyOutlinedIcon from "@mui/icons-material/PolicyOutlined";
 import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
-import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import LocalHospitalOutlinedIcon from "@mui/icons-material/LocalHospitalOutlined";
-import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import MonitorHeartOutlinedIcon from "@mui/icons-material/MonitorHeartOutlined";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import HourglassEmptyOutlinedIcon from "@mui/icons-material/HourglassEmptyOutlined";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { useNavigate } from "react-router-dom";
 import AppBarNav from "../AppBarNav";
+import {
+  fetchAdminReviewData,
+  isOpen,
+  normalizeActivityLogs,
+  normalizeQueueTasks,
+  QUEUE_PAGE_SIZE,
+  SIDEBAR_SECTIONS,
+  submitReviewAction,
+  SUMMARY_CARDS,
+  TYPE_ICONS,
+  WORKFLOW_TYPES,
+} from "./adminHelpers";
 import "./Admin.css";
-
-const SUMMARY_CARDS = [
-  { key: "Application", label: "New Applications", color: "blue", icon: <FlightTakeoffIcon /> },
-  { key: "Claim", label: "Claims to Review", color: "orange", icon: <GavelOutlinedIcon /> },
-  { key: "Document", label: "Documents Awaiting Verification", color: "purple", icon: <DescriptionOutlinedIcon /> },
-  { key: "approved", label: "Approved Today", color: "green", icon: <TaskAltOutlinedIcon /> },
-];
-
-const WORKFLOW_TYPES = [
-  { type: "Application", label: "Applications Processing", color: "blue", icon: <FlightTakeoffIcon fontSize="small" /> },
-  { type: "Claim", label: "Claims Review", color: "orange", icon: <GavelOutlinedIcon fontSize="small" /> },
-  { type: "Document", label: "Document Verification", color: "purple", icon: <DescriptionOutlinedIcon fontSize="small" /> },
-  { type: "Medical", label: "Medical Review", color: "green", icon: <LocalHospitalOutlinedIcon fontSize="small" /> },
-];
-
-const TYPE_ICONS = {
-  Application: <FlightTakeoffIcon />,
-  Claim: <GavelOutlinedIcon />,
-  Document: <DescriptionOutlinedIcon />,
-  Medical: <LocalHospitalOutlinedIcon />,
-};
-
-const SIDEBAR_SECTIONS = [
-  {
-    heading: "OPERATIONS",
-    links: [
-      { label: "Overview", icon: <DashboardOutlinedIcon fontSize="small" />, filter: "All" },
-      { label: "Applications", icon: <InboxOutlinedIcon fontSize="small" />, filter: "Application" },
-      { label: "Claims", icon: <GavelOutlinedIcon fontSize="small" />, filter: "Claim" },
-      { label: "Documents", icon: <DescriptionOutlinedIcon fontSize="small" />, filter: "Document" },
-      { label: "Medical Reviews", icon: <LocalHospitalOutlinedIcon fontSize="small" />, filter: "Medical" },
-    ],
-  },
-  // {
-  //   headings : `Welcome Captain ${fullname}`
-  // }
-];
-
-const isOpen = (status) => ["pending", "in review"].includes(String(status || "").trim().toLowerCase());
-
-const QUEUE_PAGE_SIZE = 5;
-
-const relativeTime = (timestamp) => {
-  if (!timestamp) return "Just now";
-  const minutes = Math.floor((Date.now() - timestamp) / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"} ago`;
-};
 
 export default function Admin({
   aircrafts = [],
@@ -98,102 +56,141 @@ export default function Admin({
 }) {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("All");
+  const [apiTasks, setApiTasks] = useState([]);
+  const [apiLogs, setApiLogs] = useState([]);
+  const [apiAircrafts, setApiAircrafts] = useState([]);
+  const [apiClaims, setApiClaims] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [notification, setNotification] = useState({ open: false, message: "", severity: "success" });
 
-  const applications = useMemo(() => {
-    const fromAircraft = aircrafts.map((aircraft) => ({
-      source: "aircraft",
-      id: aircraft.id,
-      reference: aircraft.reference,
-      pilot: aircraft.pilot,
-      aircraft: aircraft.name,
-      tier: aircraft.coverageTier,
-      type: "Application",
-      status: aircraft.status,
-      submitted: relativeTime(aircraft.submittedAt),
-      submittedAt: aircraft.submittedAt,
-    }));
+  const token = localStorage.getItem("token");
 
-    const fromClaims = claims.map((claim) => ({
-      source: "claim",
-      id: claim.id,
-      reference: claim.reference,
-      pilot: claim.pilot,
-      aircraft: claim.aircraft,
-      tier: claim.type,
-      type: "Claim",
-      status: claim.status,
-      submitted: relativeTime(claim.submittedAt),
-      submittedAt: claim.submittedAt,
-    }));
+  const loadData = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const { tasks, logs, aircrafts: fetchedAircrafts, claims: fetchedClaims } =
+        await fetchAdminReviewData(token);
+      setApiTasks(tasks);
+      setApiLogs(logs);
+      setApiAircrafts(fetchedAircrafts);
+      setApiClaims(fetchedClaims);
+    } catch {
+      // Offline or fallback to props
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
-    const fromReviews = reviewItems.map((item) => ({
-      source: "review",
-      id: item.id,
-      reference: item.reference,
-      pilot: item.pilot,
-      aircraft: item.aircraft,
-      tier: item.detail,
-      type: item.kind,
-      status: item.status,
-      submitted: relativeTime(item.submittedAt),
-      submittedAt: item.submittedAt,
-    }));
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    return [...fromAircraft, ...fromClaims, ...fromReviews].sort(
-      (a, b) => (b.submittedAt || 0) - (a.submittedAt || 0)
-    );
-  }, [aircrafts, claims, reviewItems]);
-
-  const handleAction = (app, action) => {
-    const status = action === "approve" ? "Approved" : "Denied";
-
-    resolveQueueItem?.({
-      source: app.source,
-      id: app.id,
-      status,
-      entry: {
-        id: `${app.id}-${Date.now()}`,
-        applicationId: app.reference,
-        pilot: app.pilot,
-        aircraft: app.aircraft,
-        type: app.type,
-        action: status,
-        time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date()),
-      },
-    });
-  };
-
-  const activity = reviewLog;
-
-  const filteredApplications = useMemo(
-    () => (filter === "All" ? applications : applications.filter((app) => app.type === filter)),
-    [applications, filter]
+  const queueTasks = useMemo(
+    () =>
+      normalizeQueueTasks({
+        apiTasks,
+        aircrafts: apiAircrafts.length > 0 ? apiAircrafts : aircrafts,
+        claims: apiClaims.length > 0 ? apiClaims : claims,
+        reviewItems,
+      }),
+    [apiTasks, apiAircrafts, aircrafts, apiClaims, claims, reviewItems]
   );
 
-  const visibleApplications = filteredApplications.slice(0, QUEUE_PAGE_SIZE);
+  const activityList = useMemo(
+    () => normalizeActivityLogs({ apiLogs, reviewLog }),
+    [apiLogs, reviewLog]
+  );
+
+  const handleAction = async (task, selectedAction) => {
+    let actionLabel = "In Review";
+    if (selectedAction === "approve" || selectedAction === "Approved") actionLabel = "Approved";
+    if (selectedAction === "deny" || selectedAction === "Denied") actionLabel = "Denied";
+    if (selectedAction === "in_review" || selectedAction === "In Review") actionLabel = "In Review";
+
+    setActionLoadingId(task.id);
+
+    try {
+      // Only rows backed by a real ReviewTask can be posted to /review-logs.
+      if (token && task.source === "api") {
+        await submitReviewAction({ taskId: task.id, action: actionLabel, token });
+        setApiTasks((current) =>
+          current.map((t) => (t.id === task.id ? { ...t, review_status: actionLabel } : t))
+        );
+        loadData();
+      } else if (token) {
+        throw new Error(
+          `${task.reference} has no review task on record yet. Refresh once the backend creates it.`
+        );
+      }
+
+      resolveQueueItem?.({
+        source: task.source,
+        id: task.id,
+        status: actionLabel,
+        entry: {
+          id: `${task.id}-${Date.now()}`,
+          applicationId: task.reference,
+          pilot: task.pilot,
+          aircraft: task.aircraft,
+          type: task.type,
+          action: actionLabel,
+          time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date()),
+        },
+      });
+
+      setNotification({
+        open: true,
+        message: `${task.reference} marked as ${actionLabel}.`,
+        severity: actionLabel === "Approved" ? "success" : actionLabel === "Denied" ? "error" : "info",
+      });
+    } catch (err) {
+      setNotification({
+        open: true,
+        message: err.message || "An error occurred while saving.",
+        severity: "error",
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const filteredTasks = useMemo(() => {
+    if (filter === "All") return queueTasks;
+    return queueTasks.filter(
+      (task) => String(task.type).toLowerCase() === String(filter).toLowerCase()
+    );
+  }, [queueTasks, filter]);
+
+  const visibleTasks = filteredTasks.slice(0, QUEUE_PAGE_SIZE);
 
   const summary = useMemo(() => {
-    const openByType = (type) => applications.filter((app) => app.type === type && isOpen(app.status)).length;
+    const openByType = (type) =>
+      queueTasks.filter((t) => String(t.type).toLowerCase() === type.toLowerCase() && isOpen(t.status)).length;
 
     return {
       Application: openByType("Application"),
       Claim: openByType("Claim"),
-      Document: openByType("Document"),
-      approved: activity.filter((entry) => entry.action === "Approved").length,
+      approved: activityList.filter((entry) => entry.action === "Approved").length,
     };
-  }, [applications, activity]);
+  }, [queueTasks, activityList]);
 
   const workflowHealth = useMemo(
     () =>
       WORKFLOW_TYPES.map((item) => {
-        const items = applications.filter((app) => app.type === item.type);
+        const items = queueTasks.filter(
+          (t) => String(t.type).toLowerCase() === item.type.toLowerCase()
+        );
+        const resolved = items.filter((t) => !isOpen(t.status)).length;
         return {
           ...item,
-          current: items.filter((app) => !isOpen(app.status)).length,
+          current: resolved,
           total: items.length,
+          percentage: items.length ? Math.round((resolved / items.length) * 100) : 0,
         };
       }),
-    [applications]
+    [queueTasks]
   );
 
   return (
@@ -201,10 +198,11 @@ export default function Admin({
       <AppBarNav />
 
       <Box className="ag-admin-layout">
+        
         <Box component="nav" className="ag-sidebar">
           <Box className="ag-sidebar-brand">
             <DashboardOutlinedIcon className="ag-sidebar-brand-icon" />
-            <h1 className="ag-sidebar-brand-name">Dashboard</h1>
+            <h1 className="ag-sidebar-brand-name">Admin Portal</h1>
           </Box>
 
           {SIDEBAR_SECTIONS.map((section) => (
@@ -226,15 +224,16 @@ export default function Admin({
           ))}
         </Box>
 
+       
         <Box component="main" className="ag-admin-content">
-         
+          
           <Grid container spacing={3} className="ag-summary-cards">
             {SUMMARY_CARDS.map((card) => (
-              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={card.label}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }} key={card.label}>
                 <Card variant="outlined" className={`ag-summary-card ag-summary-card--${card.color}`}>
                   <CardContent>
                     <Box className="ag-summary-icon">{card.icon}</Box>
-                    <p className="ag-summary-value">{summary[card.key]}</p>
+                    <p className="ag-summary-value">{summary[card.key] ?? 0}</p>
                     <p className="ag-summary-label">{card.label}</p>
                   </CardContent>
                 </Card>
@@ -243,12 +242,13 @@ export default function Admin({
           </Grid>
 
           <Grid container spacing={4}>
+            
             <Grid size={{ xs: 12, lg: 9 }}>
               <Box component="section" className="ag-admin-panel">
                 <Box component="header" className="ag-admin-panel-header">
                   <Box className="ag-panel-heading">
                     <InboxOutlinedIcon className="ag-panel-icon" />
-                    <h2 className="ag-panel-title">Underwriting Queue</h2>
+                    <h2 className="ag-panel-title">Underwriting & Review Queue</h2>
                     {filter !== "All" && (
                       <Chip
                         label={filter}
@@ -260,82 +260,108 @@ export default function Admin({
                   </Box>
                   <Box className="ag-panel-actions">
                     <p className="ag-queue-count">
-                      Showing {visibleApplications.length} of {filteredApplications.length}
+                      Showing {visibleTasks.length} of {filteredTasks.length}
                     </p>
+                    <Tooltip title="Refresh Tasks">
+                      <IconButton size="small" onClick={loadData} disabled={loading}>
+                        <RefreshIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Button variant="text" className="ag-btn-link" onClick={() => navigate("/aircrafts")}>
-                      View all →
+                      View fleet →
                     </Button>
                   </Box>
                 </Box>
 
-                <Table className="ag-admin-table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Application</TableCell>
-                      <TableCell>Pilot</TableCell>
-                      <TableCell>Aircraft</TableCell>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {visibleApplications.length === 0 ? (
+                {loading ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+                    <CircularProgress size={36} />
+                  </Box>
+                ) : (
+                  <Table className="ag-admin-table">
+                    <TableHead>
                       <TableRow>
-                        <TableCell colSpan={6}>
-                          <p className="ag-activity-empty">No items in this queue.</p>
-                        </TableCell>
+                        <TableCell>Task Reference</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Details</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell align="right">Decision</TableCell>
                       </TableRow>
-                    ) : (
-                      visibleApplications.map((app) => (
-                        <TableRow
-                          key={app.id}
-                          hover
-                          onClick={() => app.type === "Claim" && navigate(`/admin/claims/${app.id}`)}
-                          sx={{ cursor: app.type === "Claim" ? "pointer" : "default" }}
-                        >
-                          <TableCell>
-                            <p className="ag-cell-primary">{app.reference}</p>
-                            <p className="ag-cell-secondary">{app.submitted}</p>
-                          </TableCell>
-                          <TableCell>{app.pilot}</TableCell>
-                          <TableCell>
-                            <p className="ag-cell-primary">{app.aircraft}</p>
-                            {app.tier && <Chip label={app.tier} size="small" className="ag-meta-chip" />}
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              icon={TYPE_ICONS[app.type]}
-                              label={app.type}
-                              size="small"
-                              className={`ag-type ag-type--${app.type.toLowerCase()}`}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Chip label={app.status} size="small" className={`ag-status ag-status--${app.status.toLowerCase().replace(/\s/g, "-")}`} />
-                          </TableCell>
-                          <TableCell align="right">
-                            <FormControl size="small" className="ag-action-select" disabled={!isOpen(app.status)}>
-                              <Select
-                                displayEmpty
-                                value=""
-                                onChange={(event) => {
-                                  event.stopPropagation();
-                                  handleAction(app, event.target.value);
-                                }}
-                                onClick={(event) => event.stopPropagation()}
-                                renderValue={() => (isOpen(app.status) ? "Review" : "Closed")}
-                              >
-                                <MenuItem value="approve">Approve</MenuItem>
-                                <MenuItem value="deny">Deny</MenuItem>
-                              </Select>
-                            </FormControl>
+                    </TableHead>
+                    <TableBody>
+                      {visibleTasks.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5}>
+                            <p className="ag-activity-empty">No tasks in this queue.</p>
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      ) : (
+                        visibleTasks.map((task) => {
+                          const isProcessing = actionLoadingId === task.id;
+                          const taskTypeLower = String(task.type || "application").toLowerCase();
+                          const taskStatusLower = String(task.status || "pending").toLowerCase().replace(/\s/g, "-");
+
+                          return (
+                            <TableRow
+                              key={task.rowKey || task.id}
+                              hover
+                              onClick={() => task.claimId && navigate(`/admin/claims/${task.claimId}`)}
+                              sx={{ cursor: task.claimId ? "pointer" : "default" }}
+                            >
+                              <TableCell>
+                                <p className="ag-cell-primary">{task.reference}</p>
+                                <p className="ag-cell-secondary">{task.submitted}</p>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  icon={TYPE_ICONS[task.type] || <FlightTakeoffIcon fontSize="small" />}
+                                  label={task.type}
+                                  size="small"
+                                  className={`ag-type ag-type--${taskTypeLower}`}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <p className="ag-cell-primary">{task.details}</p>
+                                <p className="ag-cell-secondary">
+                                  {task.pilot} • {task.aircraft}
+                                </p>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={task.status}
+                                  size="small"
+                                  className={`ag-status ag-status--${taskStatusLower}`}
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                {isProcessing ? (
+                                  <CircularProgress size={20} />
+                                ) : (
+                                  <FormControl size="small" className="ag-action-select" disabled={!isOpen(task.status)}>
+                                    <Select
+                                      displayEmpty
+                                      value=""
+                                      onChange={(event) => {
+                                        event.stopPropagation();
+                                        handleAction(task, event.target.value);
+                                      }}
+                                      onClick={(event) => event.stopPropagation()}
+                                      renderValue={() => (isOpen(task.status) ? "Review" : task.status)}
+                                    >
+                                      <MenuItem value="approve">Approve</MenuItem>
+                                      <MenuItem value="deny">Deny</MenuItem>
+                                      <MenuItem value="in_review">In Review</MenuItem>
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </Box>
             </Grid>
 
@@ -354,11 +380,13 @@ export default function Admin({
                       <Box className="ag-workflow-header">
                         <Box className={`ag-workflow-icon ag-workflow-icon--${item.color}`}>{item.icon}</Box>
                         <p className="ag-workflow-label">{item.label}</p>
-                        <p className="ag-workflow-count">{item.current}/{item.total}</p>
+                        <p className="ag-workflow-count">
+                          {item.current}/{item.total}
+                        </p>
                       </Box>
                       <LinearProgress
                         variant="determinate"
-                        value={item.total ? (item.current / item.total) * 100 : 0}
+                        value={item.percentage}
                         className={`ag-workflow-bar ag-workflow-bar--${item.color}`}
                       />
                     </Box>
@@ -372,40 +400,65 @@ export default function Admin({
                 <Box component="header" className="ag-admin-panel-header">
                   <Box className="ag-panel-heading">
                     <HistoryOutlinedIcon className="ag-panel-icon" />
-                    <h2 className="ag-panel-title">Recent Activity</h2>
+                    <h2 className="ag-panel-title">Recent Review Activity</h2>
                   </Box>
-                  {activity.length > 0 && (
+                  {activityList.length > 0 && clearReviewLog && (
                     <Button variant="text" className="ag-btn-link" onClick={clearReviewLog}>
                       Clear
                     </Button>
                   )}
                 </Box>
 
-                {activity.length === 0 ? (
+                {activityList.length === 0 ? (
                   <p className="ag-activity-empty">
-                    No actions taken yet. Approve or deny an application to see it here.
+                    No actions logged yet. Approve, deny, or place a task in review to generate logs.
                   </p>
                 ) : (
                   <Box className="ag-activity-list">
-                    {activity.map((entry) => (
-                      <Box key={entry.id} className="ag-activity-item">
-                        <Box className={`ag-activity-icon ag-activity-icon--${entry.action.toLowerCase()}`}>
-                          {entry.action === "Approved" ? <CheckCircleOutlinedIcon /> : <HighlightOffIcon />}
+                    {activityList.slice(0, 8).map((entry) => {
+                      const actionLower = String(entry.action || "").toLowerCase();
+                      const isApproved = actionLower === "approved";
+                      const isDenied = actionLower === "denied";
+
+                      return (
+                        <Box key={entry.id} className="ag-activity-item">
+                          <Box
+                            className={`ag-activity-icon ${
+                              isApproved
+                                ? "ag-activity-icon--approved"
+                                : isDenied
+                                ? "ag-activity-icon--denied"
+                                : "ag-activity-icon--in-review"
+                            }`}
+                          >
+                            {isApproved ? (
+                              <CheckCircleOutlinedIcon />
+                            ) : isDenied ? (
+                              <HighlightOffIcon />
+                            ) : (
+                              <HourglassEmptyOutlinedIcon fontSize="small" />
+                            )}
+                          </Box>
+                          <Box sx={{ flex: 1 }}>
+                            <p className="ag-activity-text">
+                              <strong>{entry.applicationId}</strong> set to{" "}
+                              <span style={{ fontWeight: 600 }}>{entry.action}</span>
+                              {entry.pilot ? ` — ${entry.pilot}` : ""}
+                              {entry.aircraft ? `, ${entry.aircraft}` : ""}
+                            </p>
+                          </Box>
+                          {entry.type && (
+                            <Chip
+                              icon={TYPE_ICONS[entry.type] || <FlightTakeoffIcon fontSize="small" />}
+                              label={entry.type}
+                              size="small"
+                              className={`ag-type ag-type--${String(entry.type).toLowerCase()}`}
+                            />
+                          )}
+                          <p className="ag-activity-time">{entry.time}</p>
                         </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <p className="ag-activity-text">
-                            <strong>{entry.applicationId}</strong> {entry.action.toLowerCase()} — {entry.pilot}, {entry.aircraft}
-                          </p>
-                        </Box>
-                        <Chip
-                          icon={TYPE_ICONS[entry.type]}
-                          label={entry.type}
-                          size="small"
-                          className={`ag-type ag-type--${entry.type.toLowerCase()}`}
-                        />
-                        <p className="ag-activity-time">{entry.time}</p>
-                      </Box>
-                    ))}
+                      );
+                    })}
                   </Box>
                 )}
               </Box>
@@ -413,6 +466,22 @@ export default function Admin({
           </Grid>
         </Box>
       </Box>
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={4000}
+        onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
+          severity={notification.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
