@@ -99,7 +99,6 @@ export function SignUp() {
         </Box>
       </Box>
 
-      {/* Right form panel */}
       <Box className="signup-form-panel">
         <Box className="signup-form-card">
           <Box className="signup-form-header">

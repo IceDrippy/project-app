@@ -59,7 +59,6 @@ export const formatLogTime = (timestamp) => {
   }).format(dateObj);
 };
 
-// API calls
 export async function fetchAdminReviewData(token) {
   if (!token) return { tasks: [], logs: [], aircrafts: [], claims: [] };
   const headers = {
@@ -160,7 +159,6 @@ export function normalizeQueueTasks({ apiTasks = [], aircrafts = [], claims = []
     };
   });
 
-  // Include registered aircraft not already represented in review tasks
   const fromAircraft = aircrafts
     .filter((aircraft) => !taskAircraftIds.has(String(aircraft.id)))
     .map((aircraft) => ({
@@ -179,7 +177,7 @@ export function normalizeQueueTasks({ apiTasks = [], aircrafts = [], claims = []
         : aircraft.submittedAt || Date.now(),
     }));
 
-  // Include claims not already represented in review tasks
+ 
   const fromClaims = claims
     .filter((claim) => !taskClaimIds.has(String(claim.id)))
     .map((claim) => ({

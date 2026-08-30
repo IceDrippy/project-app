@@ -125,7 +125,6 @@ export default function MyPolicies() {
         <Container maxWidth="lg">
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-          {/* Page Header */}
           <Box className="ag-page-head">
             <Box>
               <h1 className="ag-page-title">
@@ -154,7 +153,7 @@ export default function MyPolicies() {
             </Button>
           </Box>
 
-          {/* Summary Cards */}
+
           <Box className="policies-summary-grid">
             {SUMMARY_CARDS.map((card) => (
               <Card key={card.label} variant="outlined" className="policies-summary-card">
@@ -187,7 +186,7 @@ export default function MyPolicies() {
             ))}
           </Box>
 
-          {/* Policies Table */}
+
           <Card variant="outlined" className="policies-table-card">
             <Box className="policies-table-header">
               <p className="policies-table-title">Aircraft Coverage</p>
@@ -313,7 +312,6 @@ export default function MyPolicies() {
             )}
           </Card>
 
-          {/* Coverage Details for each aircraft */}
           {aircrafts.length > 0 && (
             <Box className="policies-details-section">
               <p className="policies-details-heading">Coverage Details</p>
@@ -374,7 +372,7 @@ export default function MyPolicies() {
         </Container>
       </Box>
 
-      {/* Footer */}
+
       <Box component="footer" className="ag-footer">
         <Container maxWidth="lg">
           <Box className="ag-footer-grid">

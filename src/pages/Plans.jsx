@@ -176,7 +176,7 @@ export default function Plans() {
             </Container>
         </Box>
 
-        {/* Footer */}
+
         <Box component="footer" className="ag-footer">
             <Container maxWidth="lg">
             <Grid container spacing={4}>

@@ -111,7 +111,7 @@ export function Login() {
         </Box>
       </Box>
 
-      {/* Right form panel */}
+
       <Box className="login-form-panel">
         <Box className="login-form-card">
           <Box className="login-form-header">

@@ -77,7 +77,7 @@ export default function Admin({
       setApiAircrafts(fetchedAircrafts);
       setApiClaims(fetchedClaims);
     } catch {
-      // Offline or fallback to props
+      
     } finally {
       setLoading(false);
     }

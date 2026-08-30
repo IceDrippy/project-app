@@ -60,7 +60,7 @@ export default function ClaimReview({ claims = [], resolveQueueItem }) {
           setApiClaim(data.claim || data);
         }
       } catch {
-        // Fall back to props
+     
       } finally {
         setLoading(false);
       }

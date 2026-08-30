@@ -108,7 +108,7 @@ export default function CurrentPlan() {
         setPlans(FALLBACK_PLANS);
       }
     } catch (err) {
-      // Offline or API endpoint not present - fallback gracefully
+
       setPlans(FALLBACK_PLANS);
       if (err.name !== "AbortError") {
         setError(err.message || "Unable to fetch live plans.");
@@ -230,7 +230,7 @@ export default function CurrentPlan() {
         </Container>
       </Box>
 
-      {/* Footer */}
+
       <Box component="footer" className="ag-footer">
         <Container maxWidth="lg">
           <Grid container spacing={4}>
