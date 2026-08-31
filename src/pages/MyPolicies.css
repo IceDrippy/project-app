@@ -1,6 +1,4 @@
-/* My Policies Page */
 
-/* Summary Grid */
 .policies-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -44,7 +42,6 @@
   color: var(--ag-ink-soft);
 }
 
-/* Table Card */
 .policies-table-card.MuiPaper-root {
   border-radius: 12px;
   border-color: var(--ag-border);
@@ -96,7 +93,6 @@
   border-bottom: none;
 }
 
-/* Empty State */
 .policies-empty-state {
   display: flex;
   flex-direction: column;
@@ -131,7 +127,6 @@
   line-height: 1.6;
 }
 
-/* Coverage Details Section */
 .policies-details-section {
   margin-top: 16px;
 }
@@ -230,7 +225,6 @@
   color: #ea580c;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .policies-summary-grid {
     grid-template-columns: 1fr;

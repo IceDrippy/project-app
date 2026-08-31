@@ -165,7 +165,6 @@ export default function Claims() {
       <Box className="ag-body">
         <Container maxWidth="lg">
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-          {/* Page Header */}
           <Box className="ag-page-head">
             <Box>
               <h1 className="ag-page-title">

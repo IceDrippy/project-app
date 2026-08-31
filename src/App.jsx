@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 
-// Registration Wizard Components
 import { AircraftID } from "./aircraft-reg/AircraftType";
 import { UseCase } from "./aircraft-reg/UseCase";
 import { ManualSignUp } from "./aircraft-reg/ManualAircraft-Search";
@@ -10,7 +9,6 @@ import { Coverage } from "./aircraft-reg/Coverage";
 import { Quote } from "./aircraft-reg/Quote";
 import { Payment } from "./aircraft-reg/Payment";
 
-// Pages
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Claims from "./pages/Claims";

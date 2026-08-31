@@ -112,7 +112,6 @@ export default function Admin({
     setActionLoadingId(task.id);
 
     try {
-      // Only rows backed by a real ReviewTask can be posted to /review-logs.
       if (token && task.source === "api") {
         await submitReviewAction({ taskId: task.id, action: actionLabel, token });
         setApiTasks((current) =>

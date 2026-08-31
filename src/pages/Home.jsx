@@ -156,7 +156,6 @@ export default function Home() {
         </Container>
       </Box>
 
-      {/* Stats band */}
       <Box className="ag-stats">
         <Container maxWidth="lg">
           <Grid container>
@@ -170,7 +169,6 @@ export default function Home() {
         </Container>
       </Box>
 
-      {/* Footer */}
       <Box id="footer" component="footer" className="ag-footer">
         <Container maxWidth="lg">
           <Grid container spacing={4}>

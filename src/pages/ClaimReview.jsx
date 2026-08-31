@@ -104,7 +104,6 @@ export default function ClaimReview({ claims = [], resolveQueueItem }) {
 
     try {
       if (token) {
-        // Submit review log to the API
         const response = await fetch(`${API_URL}/review-logs`, {
           method: "POST",
           headers: {
